@@ -285,17 +285,158 @@ export default function App() {
           minHeight: 0,
         }}
       >
-        {/* Waveform */}
+        {/* Waveform / Completed Screen / Idle Screen */}
         <div
           style={{
             flex: '1 1 40%',
             minHeight: '200px',
             borderRadius: '12px',
             overflow: 'hidden',
+            position: 'relative',
           }}
         >
-          {isActive || sessionState === 'completed' ? (
+          {isActive ? (
             <Waveform bpm={visualBPM} isActive={isActive} />
+          ) : sessionState === 'completed' ? (
+            <div
+              style={{
+                width: '100%',
+                height: '100%',
+                backgroundColor: '#0a0a0f',
+                borderRadius: '12px',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 'clamp(0.75rem, 2vw, 1.5rem)',
+              }}
+            >
+              {/* SESSION COMPLETE title */}
+              <div
+                style={{
+                  fontSize: 'clamp(1.25rem, 3vw, 2.25rem)',
+                  fontFamily: 'Quicksand, sans-serif',
+                  fontWeight: 700,
+                  color: '#FF4200',
+                  letterSpacing: '0.15em',
+                }}
+              >
+                SESSION COMPLETE
+              </div>
+
+              {/* Peak HR hero stat */}
+              <div style={{ textAlign: 'center' }}>
+                <div
+                  style={{
+                    fontSize: 'clamp(3rem, 8vw, 6rem)',
+                    fontFamily: 'Quicksand, sans-serif',
+                    fontWeight: 700,
+                    color: '#EF4444',
+                    lineHeight: 1,
+                  }}
+                >
+                  {sessionStats?.maxHR ?? '--'}
+                </div>
+                <div
+                  style={{
+                    fontSize: 'clamp(0.75rem, 1.2vw, 1rem)',
+                    fontFamily: 'Quicksand, sans-serif',
+                    fontWeight: 600,
+                    color: '#5C6371',
+                    letterSpacing: '0.15em',
+                    marginTop: '0.25rem',
+                  }}
+                >
+                  PEAK BPM
+                </div>
+              </div>
+
+              {/* Secondary stats row */}
+              <div
+                style={{
+                  display: 'flex',
+                  gap: 'clamp(1.5rem, 4vw, 3rem)',
+                  justifyContent: 'center',
+                }}
+              >
+                <div style={{ textAlign: 'center' }}>
+                  <div
+                    style={{
+                      fontSize: 'clamp(1.25rem, 2.5vw, 2rem)',
+                      fontFamily: 'Quicksand, sans-serif',
+                      fontWeight: 700,
+                      color: '#ffffff',
+                    }}
+                  >
+                    {sessionStats?.avgHR ?? '--'}
+                  </div>
+                  <div
+                    style={{
+                      fontSize: 'clamp(0.625rem, 1vw, 0.75rem)',
+                      fontFamily: 'Quicksand, sans-serif',
+                      fontWeight: 600,
+                      color: '#5C637180',
+                      letterSpacing: '0.1em',
+                    }}
+                  >
+                    AVG BPM
+                  </div>
+                </div>
+                <div style={{ textAlign: 'center' }}>
+                  <div
+                    style={{
+                      fontSize: 'clamp(1.25rem, 2.5vw, 2rem)',
+                      fontFamily: 'Quicksand, sans-serif',
+                      fontWeight: 700,
+                      color: '#ffffff',
+                    }}
+                  >
+                    {sessionStats?.minHR ?? '--'}
+                  </div>
+                  <div
+                    style={{
+                      fontSize: 'clamp(0.625rem, 1vw, 0.75rem)',
+                      fontFamily: 'Quicksand, sans-serif',
+                      fontWeight: 600,
+                      color: '#5C637180',
+                      letterSpacing: '0.1em',
+                    }}
+                  >
+                    MIN BPM
+                  </div>
+                </div>
+                <div style={{ textAlign: 'center' }}>
+                  <div
+                    style={{
+                      fontSize: 'clamp(1.25rem, 2.5vw, 2rem)',
+                      fontFamily: 'Quicksand, sans-serif',
+                      fontWeight: 700,
+                      color: '#ffffff',
+                    }}
+                  >
+                    {(() => {
+                      if (!sessionStats?.startTime) return '--:--';
+                      const end = sessionStats.endTime ?? Date.now();
+                      const secs = Math.floor((end - sessionStats.startTime) / 1000);
+                      const m = Math.floor(secs / 60);
+                      const s = secs % 60;
+                      return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+                    })()}
+                  </div>
+                  <div
+                    style={{
+                      fontSize: 'clamp(0.625rem, 1vw, 0.75rem)',
+                      fontFamily: 'Quicksand, sans-serif',
+                      fontWeight: 600,
+                      color: '#5C637180',
+                      letterSpacing: '0.1em',
+                    }}
+                  >
+                    DURATION
+                  </div>
+                </div>
+              </div>
+            </div>
           ) : (
             <div
               style={{
