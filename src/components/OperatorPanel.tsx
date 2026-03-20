@@ -389,11 +389,11 @@ export function OperatorPanel({
           }}
         >
           <div><strong>Keyboard:</strong></div>
-          <div>Ctrl+Shift+O — Toggle this panel</div>
-          <div>Arrow Up/Down — Adjust HR (demo)</div>
-          <div>Space — Pause/Resume (demo)</div>
-          <div>X — Spike HR (demo)</div>
-          <div>R — Reset HR (demo)</div>
+          <div>Enter — Toggle this panel</div>
+          <div>1 — Start (Dummy Data)</div>
+          <div>2 — Start (BLE Sensor)</div>
+          <div>3 — End Session</div>
+          <div>4 — Reset / Next</div>
         </div>
       </div>
     </>

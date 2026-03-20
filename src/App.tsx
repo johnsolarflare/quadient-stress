@@ -48,10 +48,11 @@ export default function App() {
     refreshStats();
   }, [refreshStats]);
 
-  // Keyboard shortcut for operator panel
+  // Keyboard shortcut for operator panel (Enter key)
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
-      if (e.ctrlKey && e.shiftKey && (e.key === 'o' || e.key === 'O')) {
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
+      if (e.key === 'Enter') {
         e.preventDefault();
         setPanelOpen((v) => !v);
       }
@@ -192,6 +193,51 @@ export default function App() {
     setDataSource((d) => (d === 'ble' ? 'dummy' : 'ble'));
   };
 
+  // Numbered quick-keys for session control (work without opening the panel)
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
+
+      switch (e.key) {
+        case '1':
+          if (sessionState === 'idle') {
+            e.preventDefault();
+            setDataSource('dummy');
+            handleStartSession();
+          }
+          break;
+        case '2':
+          if (sessionState === 'idle') {
+            e.preventDefault();
+            setDataSource('ble');
+            bleService.current.onReading = handleReading;
+            bleService.current.onConnectionChange = setConnectionState;
+            bleService.current.onBatteryUpdate = setBatteryLevel;
+            bleService.current.requestDevice().then(() => {
+              handleStartSession();
+            }).catch((err) => {
+              console.error('BLE connection failed:', err);
+            });
+          }
+          break;
+        case '3':
+          if (sessionState === 'active') {
+            e.preventDefault();
+            handleEndSession();
+          }
+          break;
+        case '4':
+          if (sessionState === 'completed') {
+            e.preventDefault();
+            handleResetSession();
+          }
+          break;
+      }
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [sessionState, handleReading]);
+
   // Compute visual BPM (amplified + operator offset) for all stress visuals
   const visualBPM = computeVisualBPM(currentBPM, baselineHR, sensitivityMultiplier, bpmOffset);
   const stressLevel = getStressLevel(visualBPM);
@@ -223,7 +269,11 @@ export default function App() {
         />
       )}
 
-      <Header connectionState={connectionState} batteryLevel={batteryLevel} />
+      <Header
+        connectionState={connectionState}
+        batteryLevel={batteryLevel}
+        onLogoDoubleClick={() => setPanelOpen((v) => !v)}
+      />
 
       <main
         style={{
@@ -278,7 +328,7 @@ export default function App() {
                   color: '#5C637140',
                 }}
               >
-                Press Ctrl+Shift+O to open controls
+                Press Enter to open controls
               </div>
             </div>
           )}

@@ -3,9 +3,10 @@ import type { ConnectionState } from '../types';
 interface HeaderProps {
   connectionState: ConnectionState;
   batteryLevel: number | null;
+  onLogoDoubleClick?: () => void;
 }
 
-export function Header({ connectionState, batteryLevel }: HeaderProps) {
+export function Header({ connectionState, batteryLevel, onLogoDoubleClick }: HeaderProps) {
   const statusColors: Record<ConnectionState, string> = {
     connected: '#22C55E',
     connecting: '#FF4200',
@@ -29,8 +30,11 @@ export function Header({ connectionState, batteryLevel }: HeaderProps) {
         padding: 'clamp(0.75rem, 1.5vw, 1.25rem) clamp(1rem, 2vw, 2rem)',
       }}
     >
-      {/* Logo */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+      {/* Logo — double-click to open operator panel */}
+      <div
+        onDoubleClick={onLogoDoubleClick}
+        style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', cursor: 'default', userSelect: 'none' }}
+      >
         <svg width="140" height="32" viewBox="0 0 140 32" fill="none">
           <text
             x="0"
