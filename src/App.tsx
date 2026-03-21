@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { getStressLevel, getStressColor, computeVisualBPM } from './types';
-import type { ConnectionState, SessionState, DataSource, HRReading, AggregatedStats, SessionData } from './types';
+import { getHRZone, getZoneColor, computeVisualBPM } from './types';
+import type { ConnectionState, SessionState, DataSource, HRReading, AggregatedStats, SessionData, HRZone } from './types';
 import { BLEService } from './services/ble';
 import { DummyDataService } from './services/dummyData';
 import { SessionManager } from './services/sessionManager';
@@ -240,8 +240,8 @@ export default function App() {
 
   // Compute visual BPM (amplified + operator offset) for all stress visuals
   const visualBPM = computeVisualBPM(currentBPM, baselineHR, sensitivityMultiplier, bpmOffset);
-  const stressLevel = getStressLevel(visualBPM);
-  const stressColor = getStressColor(stressLevel);
+  const zone: HRZone = getHRZone(visualBPM);
+  const stressColor = getZoneColor(zone);
   const isActive = sessionState === 'active';
 
   return (

@@ -30,6 +30,8 @@ export type ConnectionState = 'disconnected' | 'connecting' | 'connected' | 'rec
 
 export type StressLevel = 'calm' | 'moderate' | 'elevated' | 'max';
 
+export type HRZone = 1 | 2 | 3 | 4 | 5;
+
 export type DataSource = 'ble' | 'dummy';
 
 export interface DataSourceInterface {
@@ -62,6 +64,35 @@ export function getStressLabel(level: StressLevel): string {
     case 'moderate': return 'MODERATE';
     case 'elevated': return 'ELEVATED';
     case 'max': return 'MAX STRESS';
+  }
+}
+
+// Polar-style 5-zone system (based on % of estimated max HR ~185 bpm)
+export function getHRZone(bpm: number): HRZone {
+  if (bpm < 111) return 1;  // < 60% — Very Light
+  if (bpm < 130) return 2;  // 60-70% — Light
+  if (bpm < 148) return 3;  // 70-80% — Moderate
+  if (bpm < 167) return 4;  // 80-90% — Hard
+  return 5;                  // > 90% — Maximum
+}
+
+export function getZoneColor(zone: HRZone): string {
+  switch (zone) {
+    case 1: return '#60A5FA'; // blue — very light
+    case 2: return '#22C55E'; // green — light
+    case 3: return '#FBBF24'; // amber — moderate
+    case 4: return '#FF4200'; // orange-red — hard (Quadient brand)
+    case 5: return '#EF4444'; // red — maximum
+  }
+}
+
+export function getZoneLabel(zone: HRZone): string {
+  switch (zone) {
+    case 1: return 'VERY LIGHT';
+    case 2: return 'LIGHT';
+    case 3: return 'MODERATE';
+    case 4: return 'HARD';
+    case 5: return 'MAXIMUM';
   }
 }
 

@@ -1,17 +1,17 @@
-import { getStressLevel, getStressColor, getStressLabel } from '../types';
+import { getHRZone, getZoneColor, getZoneLabel } from '../types';
 
 interface StressGaugeProps {
   bpm: number;
   isActive: boolean;
 }
 
-export function StressGauge({ bpm, isActive }: StressGaugeProps) {
-  const stressLevel = getStressLevel(bpm);
-  const color = getStressColor(stressLevel);
-  const label = getStressLabel(stressLevel);
+const ZONES = [1, 2, 3, 4, 5] as const;
+const ZONE_LABELS = ['Z1', 'Z2', 'Z3', 'Z4', 'Z5'];
 
-  // Calculate fill percentage (45-200 BPM range)
-  const fillPercent = isActive ? Math.min(100, Math.max(0, ((bpm - 45) / 155) * 100)) : 0;
+export function StressGauge({ bpm, isActive }: StressGaugeProps) {
+  const zone = getHRZone(bpm);
+  const color = getZoneColor(zone);
+  const label = getZoneLabel(zone);
 
   return (
     <div style={{ width: '100%' }}>
@@ -25,67 +25,74 @@ export function StressGauge({ bpm, isActive }: StressGaugeProps) {
       >
         <span
           style={{
-            fontSize: 'clamp(0.75rem, 1.2vw, 0.875rem)',
+            fontSize: 'clamp(0.625rem, 1vw, 0.75rem)',
             fontWeight: 600,
             fontFamily: 'Quicksand, sans-serif',
             color: '#5C6371',
-            letterSpacing: '0.1em',
+            letterSpacing: '0.12em',
           }}
         >
-          STRESS LEVEL
+          HR ZONE
         </span>
         <span
           style={{
-            fontSize: 'clamp(0.875rem, 1.5vw, 1.125rem)',
+            fontSize: 'clamp(0.75rem, 1.2vw, 0.875rem)',
             fontWeight: 700,
             fontFamily: 'Quicksand, sans-serif',
             color: isActive ? color : '#5C6371',
             transition: 'color 0.3s ease',
+            letterSpacing: '0.08em',
           }}
         >
           {isActive ? label : '--'}
         </span>
       </div>
 
-      {/* Progress bar */}
-      <div
-        style={{
-          width: '100%',
-          height: '12px',
-          borderRadius: '6px',
-          backgroundColor: 'rgba(255, 255, 255, 0.06)',
-          overflow: 'hidden',
-        }}
-      >
-        <div
-          style={{
-            width: `${fillPercent}%`,
-            height: '100%',
-            borderRadius: '6px',
-            background: isActive
-              ? `linear-gradient(90deg, #22C55E, #FF4200, #EF4444, #DC2626) ${fillPercent}% 0 / 400% 100%`
-              : 'transparent',
-            transition: 'width 0.3s ease',
-            boxShadow: isActive ? `0 0 12px ${color}60` : 'none',
-          }}
-        />
+      {/* 5-segment zone bar */}
+      <div style={{ display: 'flex', gap: '3px', height: '10px' }}>
+        {ZONES.map((z) => (
+          <div
+            key={z}
+            style={{
+              flex: 1,
+              borderRadius: '3px',
+              background: isActive && z <= zone
+                ? getZoneColor(z)
+                : 'rgba(255, 255, 255, 0.06)',
+              boxShadow: isActive && z === zone
+                ? `0 0 10px ${getZoneColor(z)}80`
+                : 'none',
+              transition: 'background 0.3s ease, box-shadow 0.3s ease',
+            }}
+          />
+        ))}
       </div>
 
       {/* Zone labels */}
       <div
         style={{
           display: 'flex',
-          justifyContent: 'space-between',
+          gap: '3px',
           marginTop: '0.25rem',
-          fontSize: '0.625rem',
-          fontFamily: 'Rubik, sans-serif',
-          color: '#5C637180',
         }}
       >
-        <span>CALM</span>
-        <span>MODERATE</span>
-        <span>ELEVATED</span>
-        <span>MAX</span>
+        {ZONES.map((z, i) => (
+          <div
+            key={z}
+            style={{
+              flex: 1,
+              textAlign: 'center',
+              fontSize: '0.5rem',
+              fontFamily: 'Quicksand, sans-serif',
+              fontWeight: 600,
+              color: isActive && z <= zone ? getZoneColor(z) : '#5C637150',
+              letterSpacing: '0.05em',
+              transition: 'color 0.3s ease',
+            }}
+          >
+            {ZONE_LABELS[i]}
+          </div>
+        ))}
       </div>
     </div>
   );

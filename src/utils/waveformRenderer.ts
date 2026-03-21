@@ -1,4 +1,4 @@
-import { getStressLevel, getStressColor } from '../types';
+import { getHRZone, getZoneColor } from '../types';
 
 export interface WaveformState {
   dataPoints: number[];
@@ -86,8 +86,8 @@ export function renderWaveform(
   const dpr = window.devicePixelRatio || 1;
   ctx.clearRect(0, 0, width * dpr, height * dpr);
 
-  const stressLevel = getStressLevel(state.currentBPM);
-  const color = getStressColor(stressLevel);
+  const zone = getHRZone(state.currentBPM);
+  const color = getZoneColor(zone);
 
   // Background
   ctx.fillStyle = '#0a0a0f';
