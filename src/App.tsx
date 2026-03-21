@@ -54,6 +54,13 @@ export default function App() {
   const startTimeRef = useRef<number | null>(null);
 
   const [idlePunIndex, setIdlePunIndex] = useState(0);
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+
+  useEffect(() => {
+    const handler = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener('resize', handler);
+    return () => window.removeEventListener('resize', handler);
+  }, []);
 
   const bleService = useRef(new BLEService());
   const dummyService = useRef(new DummyDataService());
@@ -290,6 +297,7 @@ export default function App() {
         connectionState={connectionState}
         batteryLevel={batteryLevel}
         onLogoDoubleClick={() => setPanelOpen((v) => !v)}
+        onLogoClick={isMobile ? () => setPanelOpen((v) => !v) : undefined}
       />
 
       <main
@@ -303,8 +311,36 @@ export default function App() {
           overflowY: 'auto',
         }}
       >
-        {isActive ? (
-          /* ── ACTIVE STATE: 2-column grid ── */
+        {isActive ? isMobile ? (
+          /* ── ACTIVE STATE: mobile single-column ── */
+          <div key="active-mobile" style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '0.75rem', minHeight: 0, animation: 'fadeIn 0.5s ease' }}>
+            {/* BPM ring — compact row */}
+            <div style={{ display: 'flex', justifyContent: 'center', flexShrink: 0 }}>
+              <BPMDisplay bpm={currentBPM} visualBPM={visualBPM} isActive={isActive} />
+            </div>
+            {/* Waveform — takes remaining height */}
+            <div style={{ flex: 1, borderRadius: '12px', overflow: 'hidden', minHeight: '120px' }}>
+              <Waveform bpm={visualBPM} isActive={isActive} />
+            </div>
+            {/* HR Zone + pun */}
+            <div style={{ flexShrink: 0, display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+              <StressGauge bpm={visualBPM} isActive={isActive} />
+              <div key={zone} style={{ fontSize: '0.8rem', fontFamily: 'Rubik, sans-serif', color: `${stressColor}90`, fontStyle: 'italic', animation: 'fadeIn 0.6s ease' }}>
+                {zonePun}
+              </div>
+            </div>
+            {/* Timer + stats row */}
+            <div style={{ flexShrink: 0, display: 'flex', gap: '0.75rem', alignItems: 'flex-start' }}>
+              <div style={{ flexShrink: 0 }}>
+                <SessionTimer startTime={startTime} isActive={isActive} />
+              </div>
+              <div style={{ flex: 1 }}>
+                <StatsCards minHR={sessionStats?.minHR ?? 0} avgHR={sessionStats?.avgHR ?? 0} maxHR={sessionStats?.maxHR ?? 0} isActive={true} />
+              </div>
+            </div>
+          </div>
+        ) : (
+          /* ── ACTIVE STATE: desktop 2-column grid ── */
           <div
             key="active"
             style={{
@@ -452,13 +488,14 @@ export default function App() {
             >
               <div
                 style={{
-                  fontSize: 'clamp(2rem, 5vw, 4rem)',
+                  fontSize: isMobile ? '2.25rem' : 'clamp(2rem, 5vw, 4rem)',
                   fontFamily: 'Quicksand, sans-serif',
                   fontWeight: 700,
                   color: '#FF4200',
                   animation: 'breathe 3s ease-in-out infinite',
                   letterSpacing: '0.08em',
                   textShadow: '0 0 40px #FF420060',
+                  textAlign: 'center',
                 }}
               >
                 NEXT CHALLENGER
@@ -466,17 +503,23 @@ export default function App() {
               <div
                 key={idlePunIndex}
                 style={{
-                  fontSize: 'clamp(0.8rem, 1.4vw, 1.05rem)',
+                  fontSize: isMobile ? '0.95rem' : 'clamp(0.8rem, 1.4vw, 1.05rem)',
                   fontFamily: 'Rubik, sans-serif',
                   color: '#5C6371',
                   fontStyle: 'italic',
                   animation: 'punFade 5s ease forwards',
                   textAlign: 'center',
                   maxWidth: '480px',
+                  padding: '0 1rem',
                 }}
               >
                 {IDLE_PUNS[idlePunIndex]}
               </div>
+              {isMobile && (
+                <div style={{ fontSize: '0.75rem', fontFamily: 'Rubik, sans-serif', color: '#5C637140', marginTop: '0.5rem' }}>
+                  tap the logo to begin
+                </div>
+              )}
             </div>
             <SessionSummary stats={aggregatedStats} />
           </div>
