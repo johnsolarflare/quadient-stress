@@ -106,14 +106,15 @@ export function OperatorPanel({
           right: 0,
           bottom: 0,
           width: '320px',
-          background: '#111827',
-          borderLeft: '1px solid rgba(255, 255, 255, 0.08)',
+          background: '#0e0e18',
+          borderLeft: '1px solid rgba(255, 255, 255, 0.07)',
           zIndex: 999,
           padding: '1.5rem',
           overflowY: 'auto',
           display: 'flex',
           flexDirection: 'column',
           gap: '1.25rem',
+          animation: 'slideInRight 0.3s ease',
         }}
       >
         {/* Header */}
@@ -296,22 +297,6 @@ export function OperatorPanel({
           </button>
         </div>
 
-        {/* Keyboard shortcuts help */}
-        <div
-          style={{
-            fontSize: '0.6875rem',
-            fontFamily: 'Rubik, sans-serif',
-            color: '#5C637160',
-            lineHeight: 1.6,
-          }}
-        >
-          <div><strong>Keyboard:</strong></div>
-          <div>Enter — Toggle this panel</div>
-          <div>1 — Start (Dummy Data)</div>
-          <div>2 — Start (BLE Sensor)</div>
-          <div>3 — End Session</div>
-          <div>4 — Reset / Next</div>
-        </div>
       </div>
     </>
   );

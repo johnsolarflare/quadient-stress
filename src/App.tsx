@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { getHRZone, getZoneColor, computeVisualBPM } from './types';
 import type { ConnectionState, SessionState, DataSource, HRReading, AggregatedStats, SessionData, HRZone } from './types';
 import { BLEService } from './services/ble';
@@ -13,6 +13,24 @@ import { SessionTimer } from './components/SessionTimer';
 import { StatsCards } from './components/StatsCards';
 import { SessionSummary } from './components/SessionSummary';
 import { OperatorPanel } from './components/OperatorPanel';
+
+const IDLE_PUNS = [
+  'Last one peaked at 157 BPM during the Q3 all-hands.',
+  'The printer is jammed again. Time to find out what you\'re made of.',
+  'Think you\'re calmer than your manager? Prove it.',
+  'Your inbox has 47 unread. Just saying.',
+  'It\'s just a performance review. What\'s the worst that could happen?',
+  'The CEO wants to "quickly align" with you.',
+  'Your 9am became a 3pm. Again.',
+];
+
+const ZONE_PUNS: Record<number, string> = {
+  1: 'Suspiciously calm. Have you even checked your emails?',
+  2: 'Getting warmer. Slack is about to ping.',
+  3: 'Three unread Slacks. Simultaneously.',
+  4: 'The CEO wants "just a quick word".',
+  5: 'Production is down. Client is calling. Printer jammed.',
+};
 
 export default function App() {
   const [connectionState, setConnectionState] = useState<ConnectionState>('disconnected');
@@ -34,6 +52,8 @@ export default function App() {
   const baselineReadings = useRef<number[]>([]);
   const [bpmOffset, setBpmOffset] = useState(0);
   const startTimeRef = useRef<number | null>(null);
+
+  const [idlePunIndex, setIdlePunIndex] = useState(0);
 
   const bleService = useRef(new BLEService());
   const dummyService = useRef(new DummyDataService());
@@ -225,11 +245,21 @@ export default function App() {
     return () => window.removeEventListener('keydown', handler);
   }, [sessionState, handleReading]);
 
+  // Cycle idle puns every 5 seconds when in idle state
+  useEffect(() => {
+    if (sessionState !== 'idle') return;
+    const id = setInterval(() => {
+      setIdlePunIndex((i) => (i + 1) % IDLE_PUNS.length);
+    }, 5000);
+    return () => clearInterval(id);
+  }, [sessionState]);
+
   // Compute visual BPM (amplified + operator offset) for all stress visuals
   const visualBPM = computeVisualBPM(currentBPM, baselineHR, sensitivityMultiplier, bpmOffset);
   const zone: HRZone = getHRZone(visualBPM);
   const stressColor = getZoneColor(zone);
   const isActive = sessionState === 'active';
+  const zonePun = useMemo(() => ZONE_PUNS[zone], [zone]);
 
   return (
     <div
@@ -276,6 +306,7 @@ export default function App() {
         {isActive ? (
           /* ── ACTIVE STATE: 2-column grid ── */
           <div
+            key="active"
             style={{
               flex: 1,
               display: 'grid',
@@ -283,6 +314,7 @@ export default function App() {
               gridTemplateRows: '1fr auto auto',
               gap: 'clamp(0.75rem, 1.5vw, 1.25rem)',
               minHeight: 0,
+              animation: 'fadeIn 0.5s ease',
             }}
           >
             <div style={{ gridColumn: 1, gridRow: 1, borderRadius: '12px', overflow: 'hidden', height: '100%' }}>
@@ -291,8 +323,20 @@ export default function App() {
             <div style={{ gridColumn: 2, gridRow: 1 }}>
               <BPMDisplay bpm={currentBPM} visualBPM={visualBPM} isActive={isActive} />
             </div>
-            <div style={{ gridColumn: 1, gridRow: 2 }}>
+            <div style={{ gridColumn: 1, gridRow: 2, display: 'flex', flexDirection: 'column', gap: '0.375rem' }}>
               <StressGauge bpm={visualBPM} isActive={isActive} />
+              <div
+                key={zone}
+                style={{
+                  fontSize: 'clamp(0.7rem, 1.1vw, 0.85rem)',
+                  fontFamily: 'Rubik, sans-serif',
+                  color: `${stressColor}90`,
+                  fontStyle: 'italic',
+                  animation: 'fadeIn 0.6s ease',
+                }}
+              >
+                {zonePun}
+              </div>
             </div>
             <div style={{ gridColumn: 2, gridRow: 2 }}>
               <SessionTimer startTime={startTime} isActive={isActive} />
@@ -311,7 +355,7 @@ export default function App() {
           </div>
         ) : sessionState === 'completed' ? (
           /* ── COMPLETED STATE: full-width centred hero ── */
-          <>
+          <div key="completed" style={{ flex: 1, display: 'flex', flexDirection: 'column', animation: 'fadeIn 0.6s ease' }}>
             <div
               style={{
                 flex: 1,
@@ -392,10 +436,10 @@ export default function App() {
               />
               <SessionSummary stats={aggregatedStats} />
             </div>
-          </>
+          </div>
         ) : (
           /* ── IDLE STATE: full-width centred intro ── */
-          <>
+          <div key="idle" style={{ flex: 1, display: 'flex', flexDirection: 'column', animation: 'fadeIn 0.5s ease' }}>
             <div
               style={{
                 flex: 1,
@@ -403,26 +447,39 @@ export default function App() {
                 flexDirection: 'column',
                 alignItems: 'center',
                 justifyContent: 'center',
-                gap: '1rem',
+                gap: '1.25rem',
               }}
             >
               <div
                 style={{
-                  fontSize: 'clamp(1.5rem, 4vw, 3rem)',
+                  fontSize: 'clamp(2rem, 5vw, 4rem)',
                   fontFamily: 'Quicksand, sans-serif',
                   fontWeight: 700,
-                  color: '#FF420060',
+                  color: '#FF4200',
                   animation: 'breathe 3s ease-in-out infinite',
+                  letterSpacing: '0.08em',
+                  textShadow: '0 0 40px #FF420060',
                 }}
               >
                 NEXT CHALLENGER
               </div>
-              <div style={{ fontSize: 'clamp(0.75rem, 1.2vw, 1rem)', fontFamily: 'Rubik, sans-serif', color: '#5C637140' }}>
-                Press Enter to open controls
+              <div
+                key={idlePunIndex}
+                style={{
+                  fontSize: 'clamp(0.8rem, 1.4vw, 1.05rem)',
+                  fontFamily: 'Rubik, sans-serif',
+                  color: '#5C6371',
+                  fontStyle: 'italic',
+                  animation: 'punFade 5s ease forwards',
+                  textAlign: 'center',
+                  maxWidth: '480px',
+                }}
+              >
+                {IDLE_PUNS[idlePunIndex]}
               </div>
             </div>
             <SessionSummary stats={aggregatedStats} />
-          </>
+          </div>
         )}
 
         {/* Footer — always full width */}
