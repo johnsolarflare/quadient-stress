@@ -278,34 +278,55 @@ export default function App() {
       <main
         style={{
           flex: 1,
-          display: 'grid',
-          gridTemplateColumns: '1fr clamp(160px, 16vw, 210px)',
-          gridTemplateRows: '1fr auto auto auto',
+          display: 'flex',
+          flexDirection: 'column',
           padding: '0 clamp(1rem, 2vw, 2rem) clamp(0.75rem, 1.5vw, 1.25rem)',
           gap: 'clamp(0.75rem, 1.5vw, 1.25rem)',
           minHeight: 0,
         }}
       >
-        {/* Waveform / Completed Screen / Idle Screen — col 1, row 1 */}
-        <div
-          style={{
-            gridColumn: 1,
-            gridRow: 1,
-            minHeight: '200px',
-            borderRadius: '12px',
-            overflow: 'hidden',
-            position: 'relative',
-          }}
-        >
-          {isActive ? (
-            <Waveform bpm={visualBPM} isActive={isActive} />
-          ) : sessionState === 'completed' ? (
+        {isActive ? (
+          /* ── ACTIVE STATE: 2-column grid ── */
+          <div
+            style={{
+              flex: 1,
+              display: 'grid',
+              gridTemplateColumns: '1fr clamp(160px, 16vw, 210px)',
+              gridTemplateRows: '1fr auto auto',
+              gap: 'clamp(0.75rem, 1.5vw, 1.25rem)',
+              minHeight: 0,
+            }}
+          >
+            <div style={{ gridColumn: 1, gridRow: 1, borderRadius: '12px', overflow: 'hidden', height: '100%' }}>
+              <Waveform bpm={visualBPM} isActive={isActive} />
+            </div>
+            <div style={{ gridColumn: 2, gridRow: 1 }}>
+              <BPMDisplay bpm={currentBPM} visualBPM={visualBPM} isActive={isActive} />
+            </div>
+            <div style={{ gridColumn: 1, gridRow: 2 }}>
+              <StressGauge bpm={visualBPM} isActive={isActive} />
+            </div>
+            <div style={{ gridColumn: 2, gridRow: 2 }}>
+              <SessionTimer startTime={startTime} isActive={isActive} />
+            </div>
+            <div style={{ gridColumn: 1, gridRow: 3 }}>
+              <StatsCards
+                minHR={sessionStats?.minHR ?? 0}
+                avgHR={sessionStats?.avgHR ?? 0}
+                maxHR={sessionStats?.maxHR ?? 0}
+                isActive={true}
+              />
+            </div>
+            <div style={{ gridColumn: 2, gridRow: 3 }}>
+              <SessionSummary stats={aggregatedStats} />
+            </div>
+          </div>
+        ) : sessionState === 'completed' ? (
+          /* ── COMPLETED STATE: full-width centred hero ── */
+          <>
             <div
               style={{
-                width: '100%',
-                height: '100%',
-                backgroundColor: '#0a0a0f',
-                borderRadius: '12px',
+                flex: 1,
                 display: 'flex',
                 flexDirection: 'column',
                 alignItems: 'center',
@@ -313,7 +334,6 @@ export default function App() {
                 gap: 'clamp(0.75rem, 2vw, 1.5rem)',
               }}
             >
-              {/* SESSION COMPLETE title */}
               <div
                 style={{
                   fontSize: 'clamp(1.25rem, 3vw, 2.25rem)',
@@ -325,8 +345,6 @@ export default function App() {
               >
                 SESSION COMPLETE
               </div>
-
-              {/* Peak HR hero stat */}
               <div style={{ textAlign: 'center' }}>
                 <div
                   style={{
@@ -352,100 +370,47 @@ export default function App() {
                   PEAK BPM
                 </div>
               </div>
-
-              {/* Secondary stats row */}
-              <div
-                style={{
-                  display: 'flex',
-                  gap: 'clamp(1.5rem, 4vw, 3rem)',
-                  justifyContent: 'center',
-                }}
-              >
-                <div style={{ textAlign: 'center' }}>
-                  <div
-                    style={{
-                      fontSize: 'clamp(1.25rem, 2.5vw, 2rem)',
-                      fontFamily: 'Quicksand, sans-serif',
-                      fontWeight: 700,
-                      color: '#ffffff',
-                    }}
-                  >
-                    {sessionStats?.avgHR ?? '--'}
-                  </div>
-                  <div
-                    style={{
-                      fontSize: 'clamp(0.625rem, 1vw, 0.75rem)',
-                      fontFamily: 'Quicksand, sans-serif',
-                      fontWeight: 600,
-                      color: '#5C637180',
-                      letterSpacing: '0.1em',
-                    }}
-                  >
-                    AVG BPM
-                  </div>
-                </div>
-                <div style={{ textAlign: 'center' }}>
-                  <div
-                    style={{
-                      fontSize: 'clamp(1.25rem, 2.5vw, 2rem)',
-                      fontFamily: 'Quicksand, sans-serif',
-                      fontWeight: 700,
-                      color: '#ffffff',
-                    }}
-                  >
-                    {sessionStats?.minHR ?? '--'}
-                  </div>
-                  <div
-                    style={{
-                      fontSize: 'clamp(0.625rem, 1vw, 0.75rem)',
-                      fontFamily: 'Quicksand, sans-serif',
-                      fontWeight: 600,
-                      color: '#5C637180',
-                      letterSpacing: '0.1em',
-                    }}
-                  >
-                    MIN BPM
-                  </div>
-                </div>
-                <div style={{ textAlign: 'center' }}>
-                  <div
-                    style={{
-                      fontSize: 'clamp(1.25rem, 2.5vw, 2rem)',
-                      fontFamily: 'Quicksand, sans-serif',
-                      fontWeight: 700,
-                      color: '#ffffff',
-                    }}
-                  >
-                    {(() => {
+              <div style={{ display: 'flex', gap: 'clamp(1.5rem, 4vw, 3rem)', justifyContent: 'center' }}>
+                {[
+                  { label: 'AVG BPM', value: sessionStats?.avgHR ?? '--' },
+                  { label: 'MIN BPM', value: sessionStats?.minHR ?? '--' },
+                  {
+                    label: 'DURATION', value: (() => {
                       if (!sessionStats?.startTime) return '--:--';
                       const end = sessionStats.endTime ?? Date.now();
                       const secs = Math.floor((end - sessionStats.startTime) / 1000);
-                      const m = Math.floor(secs / 60);
-                      const s = secs % 60;
-                      return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
-                    })()}
+                      return `${Math.floor(secs / 60).toString().padStart(2, '0')}:${(secs % 60).toString().padStart(2, '0')}`;
+                    })()
+                  },
+                ].map(({ label, value }) => (
+                  <div key={label} style={{ textAlign: 'center' }}>
+                    <div style={{ fontSize: 'clamp(1.25rem, 2.5vw, 2rem)', fontFamily: 'Quicksand, sans-serif', fontWeight: 700, color: '#ffffff' }}>
+                      {value}
+                    </div>
+                    <div style={{ fontSize: 'clamp(0.625rem, 1vw, 0.75rem)', fontFamily: 'Quicksand, sans-serif', fontWeight: 600, color: '#5C637180', letterSpacing: '0.1em' }}>
+                      {label}
+                    </div>
                   </div>
-                  <div
-                    style={{
-                      fontSize: 'clamp(0.625rem, 1vw, 0.75rem)',
-                      fontFamily: 'Quicksand, sans-serif',
-                      fontWeight: 600,
-                      color: '#5C637180',
-                      letterSpacing: '0.1em',
-                    }}
-                  >
-                    DURATION
-                  </div>
-                </div>
+                ))}
               </div>
             </div>
-          ) : (
+            {/* Full-width bottom row: stat cards + session summary */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr clamp(160px, 16vw, 210px)', gap: 'clamp(0.75rem, 1.5vw, 1.25rem)' }}>
+              <StatsCards
+                minHR={sessionStats?.minHR ?? 0}
+                avgHR={sessionStats?.avgHR ?? 0}
+                maxHR={sessionStats?.maxHR ?? 0}
+                isActive={true}
+              />
+              <SessionSummary stats={aggregatedStats} />
+            </div>
+          </>
+        ) : (
+          /* ── IDLE STATE: full-width centred intro ── */
+          <>
             <div
               style={{
-                width: '100%',
-                height: '100%',
-                backgroundColor: '#0a0a0f',
-                borderRadius: '12px',
+                flex: 1,
                 display: 'flex',
                 flexDirection: 'column',
                 alignItems: 'center',
@@ -464,54 +429,17 @@ export default function App() {
               >
                 NEXT CHALLENGER
               </div>
-              <div
-                style={{
-                  fontSize: 'clamp(0.75rem, 1.2vw, 1rem)',
-                  fontFamily: 'Rubik, sans-serif',
-                  color: '#5C637140',
-                }}
-              >
+              <div style={{ fontSize: 'clamp(0.75rem, 1.2vw, 1rem)', fontFamily: 'Rubik, sans-serif', color: '#5C637140' }}>
                 Press Enter to open controls
               </div>
             </div>
-          )}
-        </div>
+            <SessionSummary stats={aggregatedStats} />
+          </>
+        )}
 
-        {/* BPM — col 2, row 1 */}
-        <div style={{ gridColumn: 2, gridRow: 1 }}>
-          <BPMDisplay bpm={currentBPM} visualBPM={visualBPM} isActive={isActive} />
-        </div>
-
-        {/* Stress Gauge — col 1, row 2 */}
-        <div style={{ gridColumn: 1, gridRow: 2 }}>
-          <StressGauge bpm={visualBPM} isActive={isActive} />
-        </div>
-
-        {/* Session Timer — col 2, row 2 */}
-        <div style={{ gridColumn: 2, gridRow: 2 }}>
-          <SessionTimer startTime={startTime} isActive={isActive} />
-        </div>
-
-        {/* Stat Cards — col 1, row 3 */}
-        <div style={{ gridColumn: 1, gridRow: 3 }}>
-          <StatsCards
-            minHR={sessionStats?.minHR ?? 0}
-            avgHR={sessionStats?.avgHR ?? 0}
-            maxHR={sessionStats?.maxHR ?? 0}
-            isActive={isActive || sessionState === 'completed'}
-          />
-        </div>
-
-        {/* Session Summary — col 2, row 3 */}
-        <div style={{ gridColumn: 2, gridRow: 3 }}>
-          <SessionSummary stats={aggregatedStats} />
-        </div>
-
-        {/* Footer — spans both columns, row 4 */}
+        {/* Footer — always full width */}
         <footer
           style={{
-            gridColumn: '1 / -1',
-            gridRow: 4,
             display: 'flex',
             justifyContent: 'space-between',
             alignItems: 'center',
