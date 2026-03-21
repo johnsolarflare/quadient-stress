@@ -17,10 +17,6 @@ interface OperatorPanelProps {
   onToggleDataSource: () => void;
   aggregatedStats: AggregatedStats;
   onStatsRefresh: () => void;
-  sensitivityMultiplier: number;
-  onSensitivityChange: (value: number) => void;
-  baselineHR: number;
-  baselineDetected: boolean;
 }
 
 export function OperatorPanel({
@@ -38,10 +34,6 @@ export function OperatorPanel({
   onToggleDataSource,
   aggregatedStats,
   onStatsRefresh,
-  sensitivityMultiplier,
-  onSensitivityChange,
-  baselineHR,
-  baselineDetected,
 }: OperatorPanelProps) {
   const [exportStatus, setExportStatus] = useState('');
 
@@ -248,81 +240,6 @@ export function OperatorPanel({
                 Ready for Next Participant
               </button>
             )}
-          </div>
-        </div>
-
-        {/* Visual Sensitivity */}
-        <div>
-          <label
-            style={{
-              fontSize: '0.6875rem',
-              fontFamily: 'Quicksand, sans-serif',
-              fontWeight: 600,
-              color: '#5C6371',
-              letterSpacing: '0.1em',
-              display: 'block',
-              marginBottom: '0.375rem',
-            }}
-          >
-            VISUAL SENSITIVITY
-          </label>
-          <div
-            style={{
-              background: 'rgba(255, 255, 255, 0.03)',
-              borderRadius: '8px',
-              padding: '0.75rem',
-            }}
-          >
-            <div
-              style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                marginBottom: '0.5rem',
-                fontSize: '0.8125rem',
-                fontFamily: 'Rubik, sans-serif',
-                color: '#9CA3AF',
-              }}
-            >
-              <span>Amplification</span>
-              <span style={{ color: sensitivityMultiplier > 1 ? '#FF4200' : '#5C6371' }}>
-                {sensitivityMultiplier.toFixed(1)}x
-              </span>
-            </div>
-            <input
-              type="range"
-              min="1"
-              max="5"
-              step="0.5"
-              value={sensitivityMultiplier}
-              onChange={(e) => onSensitivityChange(parseFloat(e.target.value))}
-              style={{
-                width: '100%',
-                accentColor: '#FF4200',
-              }}
-            />
-            <div
-              style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                fontSize: '0.625rem',
-                fontFamily: 'Rubik, sans-serif',
-                color: '#5C637160',
-                marginTop: '0.25rem',
-              }}
-            >
-              <span>1x (Real)</span>
-              <span>5x (Max)</span>
-            </div>
-            <div
-              style={{
-                marginTop: '0.5rem',
-                fontSize: '0.75rem',
-                fontFamily: 'Rubik, sans-serif',
-                color: baselineDetected ? '#22C55E' : '#5C637180',
-              }}
-            >
-              Baseline: {baselineDetected ? `${baselineHR} BPM (auto)` : 'Detecting...'}
-            </div>
           </div>
         </div>
 

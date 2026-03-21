@@ -28,7 +28,7 @@ export default function App() {
   const [startTime, setStartTime] = useState<number | null>(null);
 
   // Visual sensitivity & operator override
-  const [sensitivityMultiplier, setSensitivityMultiplier] = useState(1.0);
+  const [sensitivityMultiplier] = useState(1.0);
   const [baselineHR, setBaselineHR] = useState(70);
   const [baselineDetected, setBaselineDetected] = useState(false);
   const baselineReadings = useRef<number[]>([]);
@@ -270,6 +270,7 @@ export default function App() {
           padding: '0 clamp(1rem, 2vw, 2rem) clamp(0.75rem, 1.5vw, 1.25rem)',
           gap: 'clamp(0.75rem, 1.5vw, 1.25rem)',
           minHeight: 0,
+          overflowY: 'auto',
         }}
       >
         {isActive ? (
@@ -476,10 +477,6 @@ export default function App() {
         onToggleDataSource={handleToggleDataSource}
         aggregatedStats={aggregatedStats}
         onStatsRefresh={refreshStats}
-        sensitivityMultiplier={sensitivityMultiplier}
-        onSensitivityChange={setSensitivityMultiplier}
-        baselineHR={baselineHR}
-        baselineDetected={baselineDetected}
       />
     </div>
   );
