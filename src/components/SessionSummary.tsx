@@ -61,7 +61,7 @@ export function SessionSummary({ stats }: SessionSummaryProps) {
       <div
         style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(4, 1fr)',
+          gridTemplateColumns: 'repeat(2, 1fr)',
           gap: 'clamp(0.5rem, 1vw, 1rem)',
         }}
       >

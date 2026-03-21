@@ -278,17 +278,19 @@ export default function App() {
       <main
         style={{
           flex: 1,
-          display: 'flex',
-          flexDirection: 'column',
+          display: 'grid',
+          gridTemplateColumns: '1fr clamp(160px, 16vw, 210px)',
+          gridTemplateRows: '1fr auto auto auto',
           padding: '0 clamp(1rem, 2vw, 2rem) clamp(0.75rem, 1.5vw, 1.25rem)',
           gap: 'clamp(0.75rem, 1.5vw, 1.25rem)',
           minHeight: 0,
         }}
       >
-        {/* Waveform / Completed Screen / Idle Screen */}
+        {/* Waveform / Completed Screen / Idle Screen — col 1, row 1 */}
         <div
           style={{
-            flex: '1 1 40%',
+            gridColumn: 1,
+            gridRow: 1,
             minHeight: '200px',
             borderRadius: '12px',
             overflow: 'hidden',
@@ -475,45 +477,41 @@ export default function App() {
           )}
         </div>
 
-        {/* Stats row */}
-        <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns: 'auto 1fr',
-            gap: 'clamp(0.75rem, 1.5vw, 1.25rem)',
-            alignItems: 'stretch',
-          }}
-        >
+        {/* BPM — col 2, row 1 */}
+        <div style={{ gridColumn: 2, gridRow: 1 }}>
           <BPMDisplay bpm={currentBPM} visualBPM={visualBPM} isActive={isActive} />
-
-          <div
-            style={{
-              display: 'flex',
-              flexDirection: 'column',
-              gap: 'clamp(0.5rem, 1vw, 0.75rem)',
-              justifyContent: 'center',
-            }}
-          >
-            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-              <div style={{ flex: 1 }}>
-                <StressGauge bpm={visualBPM} isActive={isActive} />
-              </div>
-              <SessionTimer startTime={startTime} isActive={isActive} />
-            </div>
-
-            <StatsCards
-              minHR={sessionStats?.minHR ?? 0}
-              avgHR={sessionStats?.avgHR ?? 0}
-              maxHR={sessionStats?.maxHR ?? 0}
-              isActive={isActive || sessionState === 'completed'}
-            />
-          </div>
         </div>
 
-        <SessionSummary stats={aggregatedStats} />
+        {/* Stress Gauge — col 1, row 2 */}
+        <div style={{ gridColumn: 1, gridRow: 2 }}>
+          <StressGauge bpm={visualBPM} isActive={isActive} />
+        </div>
 
+        {/* Session Timer — col 2, row 2 */}
+        <div style={{ gridColumn: 2, gridRow: 2 }}>
+          <SessionTimer startTime={startTime} isActive={isActive} />
+        </div>
+
+        {/* Stat Cards — col 1, row 3 */}
+        <div style={{ gridColumn: 1, gridRow: 3 }}>
+          <StatsCards
+            minHR={sessionStats?.minHR ?? 0}
+            avgHR={sessionStats?.avgHR ?? 0}
+            maxHR={sessionStats?.maxHR ?? 0}
+            isActive={isActive || sessionState === 'completed'}
+          />
+        </div>
+
+        {/* Session Summary — col 2, row 3 */}
+        <div style={{ gridColumn: 2, gridRow: 3 }}>
+          <SessionSummary stats={aggregatedStats} />
+        </div>
+
+        {/* Footer — spans both columns, row 4 */}
         <footer
           style={{
+            gridColumn: '1 / -1',
+            gridRow: 4,
             display: 'flex',
             justifyContent: 'space-between',
             alignItems: 'center',
