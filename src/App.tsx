@@ -71,12 +71,12 @@ export default function App() {
         case 'w':
         case 'W':
           e.preventDefault();
-          setBpmOffset((prev) => Math.min(prev + 5, 80));
+          setBpmOffset((prev) => Math.min(prev + 15, 120));
           break;
         case 's':
-          // lowercase only — uppercase S is not used, but keep lowercase-only for safety
+        case 'S':
           e.preventDefault();
-          setBpmOffset((prev) => Math.max(prev - 5, -40));
+          setBpmOffset((prev) => Math.max(prev - 15, -40));
           break;
       }
     };
@@ -84,20 +84,7 @@ export default function App() {
     return () => window.removeEventListener('keydown', handler);
   }, [sessionState]);
 
-  // Decay bpmOffset toward 0 over time
-  useEffect(() => {
-    if (bpmOffset === 0 || sessionState !== 'active') return;
-
-    const decayInterval = setInterval(() => {
-      setBpmOffset((prev) => {
-        if (prev > 0) return Math.max(0, prev - 2);
-        if (prev < 0) return Math.min(0, prev + 2);
-        return 0;
-      });
-    }, 1000);
-
-    return () => clearInterval(decayInterval);
-  }, [bpmOffset !== 0, sessionState]);
+  // Offset holds until operator manually adjusts — no auto-decay
 
   useEffect(() => {
     sessionManager.current.onStateChange = (state) => setSessionState(state);
