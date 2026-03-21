@@ -86,7 +86,7 @@ export function BPMDisplay({ bpm, visualBPM, isActive }: BPMDisplayProps) {
           >
             ♥
           </div>
-          {/* BPM number */}
+          {/* BPM number — shows visualBPM so it matches the zone/ring */}
           <div
             style={{
               fontSize: 'clamp(1.75rem, 4vw, 2.75rem)',
@@ -98,7 +98,7 @@ export function BPMDisplay({ bpm, visualBPM, isActive }: BPMDisplayProps) {
               fontVariantNumeric: 'tabular-nums',
             }}
           >
-            {isActive && bpm > 0 ? bpm : '--'}
+            {isActive && bpm > 0 ? visualBPM : '--'}
           </div>
           <div
             style={{
