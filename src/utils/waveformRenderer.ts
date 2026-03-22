@@ -141,16 +141,16 @@ export function renderWaveform(
 
   const lineGrad = ctx.createLinearGradient(trailStart, 0, tipX, 0);
   lineGrad.addColorStop(0,    'rgba(0,0,0,0)');
-  lineGrad.addColorStop(0.25, color + '12');
-  lineGrad.addColorStop(0.55, color + '55');
-  lineGrad.addColorStop(0.80, color + 'CC');
+  lineGrad.addColorStop(0.08, color + '33');
+  lineGrad.addColorStop(0.25, color + '88');
+  lineGrad.addColorStop(0.50, color + 'CC');
   lineGrad.addColorStop(1.0,  color);
 
   const glowGrad = ctx.createLinearGradient(trailStart, 0, tipX, 0);
   glowGrad.addColorStop(0,    'rgba(0,0,0,0)');
-  glowGrad.addColorStop(0.30, color + '08');
-  glowGrad.addColorStop(0.60, color + '25');
-  glowGrad.addColorStop(1.0,  color + '55');
+  glowGrad.addColorStop(0.10, color + '15');
+  glowGrad.addColorStop(0.35, color + '40');
+  glowGrad.addColorStop(1.0,  color + '70');
 
   // Build path helper
   const buildPath = () => {
