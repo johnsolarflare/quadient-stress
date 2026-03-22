@@ -229,30 +229,16 @@ export default function App() {
     setBatteryLevel(null);
   };
 
-  const startDummyService = () => {
-    dummyService.current.onReading = handleReading;
-    dummyService.current.onConnectionChange = setConnectionState;
-    dummyService.current.onBatteryUpdate = setBatteryLevel;
-    dummyService.current.start();
-  };
-
-  const handleStartDemoSession = () => {
-    setDataSource('dummy');
-    startDummyService();
-    sessionManager.current.startSession();
-    setSessionState('active');
-    const now = Date.now();
-    setStartTime(now);
-    startTimeRef.current = now;
-  };
-
   const handleStartSession = () => {
     if (dataSource === 'ble' && connectionState !== 'connected') {
       alert('Connect your Polar sensor first — open the Operator Panel and click Connect.');
       return;
     }
     if (dataSource === 'dummy') {
-      startDummyService();
+      dummyService.current.onReading = handleReading;
+      dummyService.current.onConnectionChange = setConnectionState;
+      dummyService.current.onBatteryUpdate = setBatteryLevel;
+      dummyService.current.start();
     }
     sessionManager.current.startSession();
     setSessionState('active');
