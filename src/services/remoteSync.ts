@@ -17,7 +17,7 @@ const DATABASE_URL = import.meta.env.VITE_FIREBASE_DATABASE_URL as string | unde
 const REMOTE_PIN = ((import.meta.env.VITE_REMOTE_PIN as string | undefined) || 'quadient').trim();
 
 let db: Database | null = null;
-let lastCommandAt = 0;
+let lastCommandAt = Date.now();
 
 /** Validate PIN from URL — returns true if PIN matches or no PIN is configured */
 export function validatePin(pin: string | null): boolean {
@@ -90,7 +90,7 @@ export function onRemoteDataSource(
   callback: (source: RemoteDataSource) => void,
 ): () => void {
   if (!db) return () => {};
-  let lastRequestedAt = 0;
+  let lastRequestedAt = Date.now();
   return onValue(sessionRef('dataSource'), (snapshot) => {
     const data = snapshot.val() as { source: RemoteDataSource; requestedAt: number } | null;
     if (!data) return;
