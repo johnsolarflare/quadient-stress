@@ -3,24 +3,27 @@ import type { ConnectionState } from '../types';
 interface HeaderProps {
   connectionState: ConnectionState;
   batteryLevel: number | null;
+  dataSource?: 'ble' | 'dummy';
   onLogoDoubleClick?: () => void;
   onLogoClick?: () => void;
   isMobile?: boolean;
 }
 
-export function Header({ connectionState, batteryLevel, onLogoDoubleClick, onLogoClick, isMobile }: HeaderProps) {
+export function Header({ connectionState, batteryLevel, dataSource, onLogoDoubleClick, onLogoClick, isMobile }: HeaderProps) {
+  const isDemo = dataSource === 'dummy' || dataSource === undefined;
+
   const statusColors: Record<ConnectionState, string> = {
-    connected: '#22C55E',
+    connected: isDemo ? '#5C8FA0' : '#22C55E',
     connecting: '#FF4200',
     reconnecting: '#EF4444',
     disconnected: '#5C6371',
   };
 
   const statusLabels: Record<ConnectionState, string> = {
-    connected: 'CONNECTED',
+    connected: isDemo ? 'DEMO' : 'CONNECTED',
     connecting: 'CONNECTING...',
     reconnecting: 'RECONNECTING...',
-    disconnected: 'DISCONNECTED',
+    disconnected: isDemo ? 'DEMO' : 'DISCONNECTED',
   };
 
   return (
@@ -83,7 +86,7 @@ export function Header({ connectionState, batteryLevel, onLogoDoubleClick, onLog
 
       {/* Status */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-        {batteryLevel !== null && connectionState === 'connected' && (
+        {batteryLevel !== null && connectionState === 'connected' && !isDemo && (
           <span
             style={{
               fontSize: '0.75rem',

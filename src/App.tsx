@@ -409,6 +409,7 @@ export default function App() {
       <Header
         connectionState={connectionState}
         batteryLevel={batteryLevel}
+        dataSource={dataSource}
         onLogoDoubleClick={() => setPanelOpen((v) => !v)}
         onLogoClick={isMobile ? () => setPanelOpen((v) => !v) : undefined}
         isMobile={isMobile}
