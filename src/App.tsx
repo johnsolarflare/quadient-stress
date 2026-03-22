@@ -89,6 +89,8 @@ export default function App() {
   const [baselineDetected, setBaselineDetected] = useState(false);
   const baselineReadings = useRef<number[]>([]);
   const [bpmOffset, setBpmOffset] = useState(0);
+  const bpmOffsetRef = useRef(0);
+  const baselineHRRef = useRef(70);
   const startTimeRef = useRef<number | null>(null);
 
   const [idlePunIndex, setIdlePunIndex] = useState(0);
@@ -151,6 +153,9 @@ export default function App() {
 
   // Offset holds until operator manually adjusts — no auto-decay
 
+  useEffect(() => { bpmOffsetRef.current = bpmOffset; }, [bpmOffset]);
+  useEffect(() => { baselineHRRef.current = baselineHR; }, [baselineHR]);
+
   useEffect(() => {
     sessionManager.current.onStateChange = (state) => setSessionState(state);
     sessionManager.current.onStatsUpdate = (session) => setSessionStats(session);
@@ -167,7 +172,9 @@ export default function App() {
     );
     setSmoothedBPM(avg);
 
-    sessionManager.current.addReading(reading);
+    // Record visual BPM (amplified + offset) so MIN/AVG/MAX match the display
+    const recordedBPM = computeVisualBPM(avg, baselineHRRef.current, 1.0, bpmOffsetRef.current);
+    sessionManager.current.addReading({ ...reading, bpm: recordedBPM });
 
     // Baseline detection: collect first 10 seconds of readings (uses ref to avoid stale closure)
     if (!baselineDetected && startTimeRef.current) {
