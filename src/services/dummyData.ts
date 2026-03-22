@@ -27,8 +27,8 @@ export class DummyDataService implements DataSourceInterface {
     }
 
     this.startTime = Date.now();
-    this.currentBPM = 70;
-    this.targetBPM = 70;
+    this.currentBPM = 67;
+    this.targetBPM = 67;
     this.mode = 'autoplay';
     this.paused = false;
 
@@ -38,6 +38,7 @@ export class DummyDataService implements DataSourceInterface {
     this.keyHandler = this.handleKeyboard.bind(this);
     window.addEventListener('keydown', this.keyHandler);
 
+    // 250ms interval — 4 readings/sec for smooth BPM tracking
     this.intervalId = window.setInterval(() => {
       if (this.paused) return;
 
@@ -45,12 +46,12 @@ export class DummyDataService implements DataSourceInterface {
         this.updateAutoplayTarget();
       }
 
-      // Smooth interpolation toward target
+      // Smooth interpolation — 0.04/tick @ 250ms ≈ same feel as 0.15/tick @ 1000ms
       const diff = this.targetBPM - this.currentBPM;
-      this.currentBPM += diff * 0.15;
+      this.currentBPM += diff * 0.04;
 
-      // Add realistic noise
-      const noise = (Math.random() - 0.5) * 6;
+      // Realistic HRV noise: ±2–3 BPM (Polar H10 at rest/mild stress)
+      const noise = (Math.random() - 0.5) * 5;
       const bpm = Math.round(Math.max(45, Math.min(200, this.currentBPM + noise)));
 
       const reading: HRReading = {
@@ -59,7 +60,7 @@ export class DummyDataService implements DataSourceInterface {
       };
 
       this.onReading?.(reading);
-    }, 1000);
+    }, 250);
   }
 
   private updateAutoplayTarget(): void {
@@ -67,31 +68,26 @@ export class DummyDataService implements DataSourceInterface {
     const cycleDuration = 180; // 3-minute cycle
     const phase = elapsed % cycleDuration;
 
-    if (phase < 30) {
-      // Baseline: calm resting
-      this.targetBPM = 68 + Math.sin(elapsed * 0.1) * 3;
-    } else if (phase < 60) {
-      // Anticipation: gradual rise
-      const progress = (phase - 30) / 30;
-      this.targetBPM = 70 + progress * 25;
-    } else if (phase < 120) {
-      // Stress onset: rising with spikes
-      const progress = (phase - 60) / 60;
-      this.targetBPM = 95 + progress * 45;
-      // Random spikes
-      if (Math.random() < 0.1) {
-        this.targetBPM += 15;
-      }
-    } else if (phase < 150) {
-      // Peak stress
-      this.targetBPM = 145 + Math.sin(elapsed * 0.5) * 15;
-      if (Math.random() < 0.15) {
-        this.targetBPM += 20;
-      }
+    if (phase < 25) {
+      // Settled at rest — COMPOSED (65–70 BPM)
+      this.targetBPM = 67 + Math.sin(elapsed * 0.08) * 2;
+    } else if (phase < 55) {
+      // Task begins — anticipation rise into AWARE (68–80 BPM)
+      const progress = (phase - 25) / 30;
+      this.targetBPM = 68 + progress * 14 + Math.sin(elapsed * 0.15) * 2;
+    } else if (phase < 110) {
+      // Time pressure building — TENSE zone (80–93 BPM), occasional micro-spikes
+      const progress = (phase - 55) / 55;
+      this.targetBPM = 82 + progress * 11 + Math.sin(elapsed * 0.2) * 3;
+      if (Math.random() < 0.03) this.targetBPM += 6; // brief startle
+    } else if (phase < 145) {
+      // Peak cognitive load — STRESSED (93–106 BPM)
+      this.targetBPM = 93 + Math.sin(elapsed * 0.3) * 7 + 6;
+      if (Math.random() < 0.02) this.targetBPM += 8; // stress spike
     } else {
-      // Recovery
-      const progress = (phase - 150) / 30;
-      this.targetBPM = 155 - progress * 75;
+      // Recovery — gradual descent back to COMPOSED
+      const progress = (phase - 145) / 35;
+      this.targetBPM = 105 - progress * 37 + Math.sin(elapsed * 0.1) * 2;
     }
   }
 

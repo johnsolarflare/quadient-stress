@@ -160,9 +160,30 @@ export function OperatorPanel({
           >
             DATA SOURCE
           </label>
-          <button onClick={onToggleDataSource} style={btnStyle(dataSource === 'ble' ? '#3860BE' : '#FF4200')}>
-            {dataSource === 'ble' ? 'Polar Sensor (BLE)' : 'Demo Mode (Dummy Data)'}
-          </button>
+          <div style={{ display: 'flex', gap: '0.5rem' }}>
+            <button
+              onClick={() => dataSource !== 'ble' && onToggleDataSource()}
+              style={{
+                ...btnStyle(dataSource === 'ble' ? '#3860BE' : '#1F2937'),
+                flex: 1,
+                opacity: dataSource === 'ble' ? 1 : 0.45,
+                outline: dataSource === 'ble' ? '1.5px solid #3860BE80' : 'none',
+              }}
+            >
+              Polar Sensor
+            </button>
+            <button
+              onClick={() => dataSource !== 'dummy' && onToggleDataSource()}
+              style={{
+                ...btnStyle(dataSource === 'dummy' ? '#FF4200' : '#1F2937'),
+                flex: 1,
+                opacity: dataSource === 'dummy' ? 1 : 0.45,
+                outline: dataSource === 'dummy' ? '1.5px solid #FF420080' : 'none',
+              }}
+            >
+              Demo Mode
+            </button>
+          </div>
         </div>
 
         {/* Connection */}

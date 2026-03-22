@@ -5,9 +5,10 @@ interface HeaderProps {
   batteryLevel: number | null;
   onLogoDoubleClick?: () => void;
   onLogoClick?: () => void;
+  isMobile?: boolean;
 }
 
-export function Header({ connectionState, batteryLevel, onLogoDoubleClick, onLogoClick }: HeaderProps) {
+export function Header({ connectionState, batteryLevel, onLogoDoubleClick, onLogoClick, isMobile }: HeaderProps) {
   const statusColors: Record<ConnectionState, string> = {
     connected: '#22C55E',
     connecting: '#FF4200',
@@ -35,7 +36,7 @@ export function Header({ connectionState, batteryLevel, onLogoDoubleClick, onLog
       <div
         onDoubleClick={onLogoDoubleClick}
         onClick={onLogoClick}
-        style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', cursor: 'default', userSelect: 'none' }}
+        style={{ display: 'flex', flexDirection: 'column', gap: '0.1rem', cursor: 'default', userSelect: 'none' }}
       >
         <svg width="140" height="32" viewBox="0 0 140 32" fill="none">
           <text
@@ -51,20 +52,34 @@ export function Header({ connectionState, batteryLevel, onLogoDoubleClick, onLog
             ent
           </text>
         </svg>
+        {/* On mobile: subtitle under logo */}
+        {isMobile && (
+          <span style={{
+            fontSize: '0.6rem',
+            fontFamily: 'Quicksand, sans-serif',
+            fontWeight: 600,
+            color: '#5C6371',
+            letterSpacing: '0.2em',
+          }}>
+            STRESS TEST
+          </span>
+        )}
       </div>
 
-      {/* Title */}
-      <div
-        style={{
-          fontSize: 'clamp(0.875rem, 1.5vw, 1.25rem)',
-          fontWeight: 700,
-          fontFamily: 'Quicksand, sans-serif',
-          color: '#ffffff',
-          letterSpacing: '0.2em',
-        }}
-      >
-        STRESS TEST
-      </div>
+      {/* Title — desktop centre */}
+      {!isMobile && (
+        <div
+          style={{
+            fontSize: 'clamp(0.875rem, 1.5vw, 1.25rem)',
+            fontWeight: 700,
+            fontFamily: 'Quicksand, sans-serif',
+            color: '#ffffff',
+            letterSpacing: '0.2em',
+          }}
+        >
+          STRESS TEST
+        </div>
+      )}
 
       {/* Status */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>

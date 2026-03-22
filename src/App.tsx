@@ -5,6 +5,7 @@ import { BLEService } from './services/ble';
 import { DummyDataService } from './services/dummyData';
 import { SessionManager } from './services/sessionManager';
 import { getAggregatedStats } from './services/db';
+import { initRemoteSync, onRemoteCommand, onRemoteDataSource, pushStatus, resetLastCommandAt } from './services/remoteSync';
 import { Header } from './components/Header';
 import { Waveform } from './components/Waveform';
 import { BPMDisplay } from './components/BPMDisplay';
@@ -13,6 +14,13 @@ import { SessionTimer } from './components/SessionTimer';
 import { StatsCards } from './components/StatsCards';
 import { SessionSummary } from './components/SessionSummary';
 import { OperatorPanel } from './components/OperatorPanel';
+import { RemoteControl } from './components/RemoteControl';
+
+// Remote control view — phone opens ?remote in URL
+const IS_REMOTE = new URLSearchParams(window.location.search).has('remote');
+
+// Initialise Firebase sync (no-op if env vars not set)
+initRemoteSync();
 
 const IDLE_PUNS = [
   'Last one peaked at 157 BPM during the Q3 all-hands.',
@@ -24,19 +32,48 @@ const IDLE_PUNS = [
   'Your 9am became a 3pm. Again.',
 ];
 
-const ZONE_PUNS: Record<number, string> = {
-  1: 'Suspiciously calm. Have you even checked your emails?',
-  2: 'Getting warmer. Slack is about to ping.',
-  3: 'Three unread Slacks. Simultaneously.',
-  4: 'The CEO wants "just a quick word".',
-  5: 'Production is down. Client is calling. Printer jammed.',
+const ZONE_PUNS: Record<number, string[]> = {
+  1: [
+    'Suspiciously calm. Have you even checked your emails?',
+    'Ice in those veins. Your manager is concerned.',
+    'Either very zen or the Wi-Fi is down.',
+    'This is fine. Everything is fine.',
+  ],
+  2: [
+    'Getting warmer. Slack is about to ping.',
+    'A meeting just appeared on your calendar.',
+    'Someone mentioned you in a thread.',
+    'The pressure is registering. Slightly.',
+  ],
+  3: [
+    'Three unread Slacks. Simultaneously.',
+    'Your to-do list just grew by four items.',
+    'That deadline is closer than it looks.',
+    'Is that your phone buzzing? Again?',
+  ],
+  4: [
+    'The CEO wants "just a quick word".',
+    'Your 3pm became a 2pm. Starting now.',
+    'Multiple stakeholders. One screen.',
+    'Live presentation. Wrong file open.',
+  ],
+  5: [
+    'Production is down. Client is calling. Printer jammed.',
+    'All-hands in five minutes. You\'re presenting.',
+    'Everyone is waiting. Everyone.',
+    'Deep breaths. You got this. Probably.',
+  ],
 };
 
 export default function App() {
+  if (IS_REMOTE) return <RemoteControl />;
+
   const [connectionState, setConnectionState] = useState<ConnectionState>('disconnected');
   const [sessionState, setSessionState] = useState<SessionState>('idle');
   const [dataSource, setDataSource] = useState<DataSource>('dummy');
   const [currentBPM, setCurrentBPM] = useState(0);
+  const [smoothedBPM, setSmoothedBPM] = useState(0);
+  const bpmHistoryRef = useRef<number[]>([]);
   const [batteryLevel, setBatteryLevel] = useState<number | null>(null);
   const [sessionStats, setSessionStats] = useState<SessionData | null>(null);
   const [aggregatedStats, setAggregatedStats] = useState<AggregatedStats>({
@@ -54,10 +91,10 @@ export default function App() {
   const startTimeRef = useRef<number | null>(null);
 
   const [idlePunIndex, setIdlePunIndex] = useState(0);
-  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 900);
 
   useEffect(() => {
-    const handler = () => setIsMobile(window.innerWidth < 768);
+    const handler = () => setIsMobile(window.innerWidth < 900);
     window.addEventListener('resize', handler);
     return () => window.removeEventListener('resize', handler);
   }, []);
@@ -120,6 +157,15 @@ export default function App() {
 
   const handleReading = useCallback((reading: HRReading) => {
     setCurrentBPM(reading.bpm);
+
+    // Rolling 4-reading average (~1s at 250ms interval) for stable display
+    bpmHistoryRef.current.push(reading.bpm);
+    if (bpmHistoryRef.current.length > 4) bpmHistoryRef.current.shift();
+    const avg = Math.round(
+      bpmHistoryRef.current.reduce((a, b) => a + b, 0) / bpmHistoryRef.current.length,
+    );
+    setSmoothedBPM(avg);
+
     sessionManager.current.addReading(reading);
 
     // Baseline detection: collect first 10 seconds of readings (uses ref to avoid stale closure)
@@ -166,8 +212,10 @@ export default function App() {
   };
 
   const handleStartSession = () => {
-    if (dataSource === 'dummy') {
-      // Always (re)start the dummy service — it's idempotent
+    // Use dummy if in dummy mode OR if BLE selected but sensor not actually connected
+    const usingDummy = dataSource === 'dummy' || connectionState !== 'connected';
+    if (usingDummy) {
+      if (dataSource !== 'dummy') setDataSource('dummy');
       dummyService.current.onReading = handleReading;
       dummyService.current.onConnectionChange = setConnectionState;
       dummyService.current.onBatteryUpdate = setBatteryLevel;
@@ -194,6 +242,8 @@ export default function App() {
     sessionManager.current.reset();
     setSessionState('idle');
     setCurrentBPM(0);
+    setSmoothedBPM(0);
+    bpmHistoryRef.current = [];
     setSessionStats(null);
     setStartTime(null);
     startTimeRef.current = null;
@@ -206,6 +256,41 @@ export default function App() {
     handleDisconnect();
     setDataSource((d) => (d === 'ble' ? 'dummy' : 'ble'));
   };
+
+  // Listen for remote commands from phone controller
+  useEffect(() => {
+    const unsub = onRemoteCommand((command) => {
+      if (command === 'start' && sessionState === 'idle') handleStartSession();
+      if (command === 'end' && sessionState === 'active') handleEndSession();
+      if (command === 'reset' && sessionState === 'completed') handleResetSession();
+    });
+    return unsub;
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sessionState]);
+
+  // Listen for data source switch requests from remote
+  useEffect(() => {
+    const unsub = onRemoteDataSource((source) => {
+      if (sessionState !== 'idle') return; // don't switch mid-session
+      if (source !== dataSource) handleToggleDataSource();
+    });
+    return unsub;
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sessionState, dataSource]);
+
+  // Push live status to Firebase so remote control can display it (every ~2s)
+  useEffect(() => {
+    if (sessionState !== 'active') return;
+    const id = setInterval(() => pushStatus(smoothedBPM, sessionState, dataSource, connectionState), 2000);
+    return () => clearInterval(id);
+  }, [sessionState, smoothedBPM, dataSource, connectionState]);
+
+  // On session/connection/source state change, push immediately
+  useEffect(() => {
+    pushStatus(smoothedBPM, sessionState, dataSource, connectionState);
+    if (sessionState === 'idle') resetLastCommandAt();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sessionState, dataSource, connectionState]);
 
   // Numbered quick-keys for session control (work without opening the panel)
   useEffect(() => {
@@ -262,11 +347,38 @@ export default function App() {
   }, [sessionState]);
 
   // Compute visual BPM (amplified + operator offset) for all stress visuals
-  const visualBPM = computeVisualBPM(currentBPM, baselineHR, sensitivityMultiplier, bpmOffset);
+  // Uses smoothed BPM so display/zone/waveform don't jitter with per-reading noise
+  const visualBPM = computeVisualBPM(smoothedBPM, baselineHR, sensitivityMultiplier, bpmOffset);
   const zone: HRZone = getHRZone(visualBPM);
   const stressColor = getZoneColor(zone);
   const isActive = sessionState === 'active';
-  const zonePun = useMemo(() => ZONE_PUNS[zone], [zone]);
+
+  // Debounced stable zone — zone must be steady for 2s before display updates
+  const stableZoneTimerRef = useRef<number | null>(null);
+  const [stableZone, setStableZone] = useState<HRZone>(zone);
+  useEffect(() => {
+    if (stableZoneTimerRef.current) clearTimeout(stableZoneTimerRef.current);
+    stableZoneTimerRef.current = window.setTimeout(() => {
+      setStableZone(zone);
+      stableZoneTimerRef.current = null;
+    }, 2000);
+    return () => {
+      if (stableZoneTimerRef.current) clearTimeout(stableZoneTimerRef.current);
+    };
+  }, [zone]);
+
+  // Pun variant cycles every 8s (independent of zone changes)
+  const [punVariantIndex, setPunVariantIndex] = useState(0);
+  useEffect(() => {
+    if (!isActive) return;
+    const id = setInterval(() => setPunVariantIndex((i) => i + 1), 8000);
+    return () => clearInterval(id);
+  }, [isActive]);
+
+  const zonePun = useMemo(
+    () => ZONE_PUNS[stableZone][punVariantIndex % ZONE_PUNS[stableZone].length],
+    [stableZone, punVariantIndex],
+  );
 
   return (
     <div
@@ -298,6 +410,7 @@ export default function App() {
         batteryLevel={batteryLevel}
         onLogoDoubleClick={() => setPanelOpen((v) => !v)}
         onLogoClick={isMobile ? () => setPanelOpen((v) => !v) : undefined}
+        isMobile={isMobile}
       />
 
       <main
@@ -313,30 +426,26 @@ export default function App() {
       >
         {isActive ? isMobile ? (
           /* ── ACTIVE STATE: mobile single-column ── */
-          <div key="active-mobile" style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '0.75rem', minHeight: 0, animation: 'fadeIn 0.5s ease' }}>
-            {/* BPM ring — compact row */}
+          <div key="active-mobile" style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '0.5rem', minHeight: 0, animation: 'fadeIn 0.5s ease' }}>
+            {/* BPM ring — centred */}
             <div style={{ display: 'flex', justifyContent: 'center', flexShrink: 0 }}>
               <BPMDisplay bpm={currentBPM} visualBPM={visualBPM} isActive={isActive} />
             </div>
             {/* Waveform — takes remaining height */}
-            <div style={{ flex: 1, borderRadius: '12px', overflow: 'hidden', minHeight: '120px' }}>
+            <div style={{ flex: 1, borderRadius: '12px', overflow: 'hidden', minHeight: '100px' }}>
               <Waveform bpm={visualBPM} isActive={isActive} />
             </div>
-            {/* HR Zone + pun */}
-            <div style={{ flexShrink: 0, display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-              <StressGauge bpm={visualBPM} isActive={isActive} />
-              <div key={zone} style={{ fontSize: '0.8rem', fontFamily: 'Rubik, sans-serif', color: `${stressColor}90`, fontStyle: 'italic', animation: 'fadeIn 0.6s ease' }}>
+            {/* HR Zone + pun + timer */}
+            <div style={{ flexShrink: 0, display: 'flex', flexDirection: 'column', gap: '0.2rem' }}>
+              <StressGauge bpm={visualBPM} isActive={isActive} stableZone={stableZone} />
+              <div key={stableZone} style={{ fontSize: '0.78rem', fontFamily: 'Rubik, sans-serif', color: `${stressColor}90`, fontStyle: 'italic', animation: 'fadeIn 0.6s ease' }}>
                 {zonePun}
               </div>
+              <SessionTimer startTime={startTime} isActive={isActive} />
             </div>
-            {/* Timer + stats row */}
-            <div style={{ flexShrink: 0, display: 'flex', gap: '0.75rem', alignItems: 'flex-start' }}>
-              <div style={{ flexShrink: 0 }}>
-                <SessionTimer startTime={startTime} isActive={isActive} />
-              </div>
-              <div style={{ flex: 1 }}>
-                <StatsCards minHR={sessionStats?.minHR ?? 0} avgHR={sessionStats?.avgHR ?? 0} maxHR={sessionStats?.maxHR ?? 0} isActive={true} />
-              </div>
+            {/* Stats row */}
+            <div style={{ flexShrink: 0 }}>
+              <StatsCards minHR={sessionStats?.minHR ?? 0} avgHR={sessionStats?.avgHR ?? 0} maxHR={sessionStats?.maxHR ?? 0} isActive={true} />
             </div>
           </div>
         ) : (
@@ -360,9 +469,9 @@ export default function App() {
               <BPMDisplay bpm={currentBPM} visualBPM={visualBPM} isActive={isActive} />
             </div>
             <div style={{ gridColumn: 1, gridRow: 2, display: 'flex', flexDirection: 'column', gap: '0.375rem' }}>
-              <StressGauge bpm={visualBPM} isActive={isActive} />
+              <StressGauge bpm={visualBPM} isActive={isActive} stableZone={stableZone} />
               <div
-                key={zone}
+                key={stableZone}
                 style={{
                   fontSize: 'clamp(0.7rem, 1.1vw, 0.85rem)',
                   fontFamily: 'Rubik, sans-serif',
@@ -462,16 +571,18 @@ export default function App() {
                 ))}
               </div>
             </div>
-            {/* Full-width bottom row: stat cards + session summary */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr clamp(160px, 16vw, 210px)', gap: 'clamp(0.75rem, 1.5vw, 1.25rem)' }}>
-              <StatsCards
-                minHR={sessionStats?.minHR ?? 0}
-                avgHR={sessionStats?.avgHR ?? 0}
-                maxHR={sessionStats?.maxHR ?? 0}
-                isActive={true}
-              />
-              <SessionSummary stats={aggregatedStats} />
-            </div>
+            {/* Full-width bottom row: stat cards + session summary — desktop only */}
+            {!isMobile && (
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr clamp(160px, 16vw, 210px)', gap: 'clamp(0.75rem, 1.5vw, 1.25rem)' }}>
+                <StatsCards
+                  minHR={sessionStats?.minHR ?? 0}
+                  avgHR={sessionStats?.avgHR ?? 0}
+                  maxHR={sessionStats?.maxHR ?? 0}
+                  isActive={true}
+                />
+                <SessionSummary stats={aggregatedStats} />
+              </div>
+            )}
           </div>
         ) : (
           /* ── IDLE STATE: full-width centred intro ── */
@@ -515,20 +626,15 @@ export default function App() {
               >
                 {IDLE_PUNS[idlePunIndex]}
               </div>
-              {isMobile && (
-                <div style={{ fontSize: '0.75rem', fontFamily: 'Rubik, sans-serif', color: '#5C637140', marginTop: '0.5rem' }}>
-                  tap the logo to begin
-                </div>
-              )}
             </div>
-            <SessionSummary stats={aggregatedStats} />
+            {!isMobile && <SessionSummary stats={aggregatedStats} />}
           </div>
         )}
 
-        {/* Footer — always full width */}
+        {/* Footer — hidden on mobile */}
         <footer
           style={{
-            display: 'flex',
+            display: isMobile ? 'none' : 'flex',
             justifyContent: 'space-between',
             alignItems: 'center',
             padding: '0.5rem 0',

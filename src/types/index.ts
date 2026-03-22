@@ -43,9 +43,9 @@ export interface DataSourceInterface {
 }
 
 export function getStressLevel(bpm: number): StressLevel {
-  if (bpm < 80) return 'calm';
-  if (bpm < 110) return 'moderate';
-  if (bpm < 140) return 'elevated';
+  if (bpm < 72) return 'calm';
+  if (bpm < 88) return 'moderate';
+  if (bpm < 105) return 'elevated';
   return 'max';
 }
 
@@ -67,13 +67,13 @@ export function getStressLabel(level: StressLevel): string {
   }
 }
 
-// Polar-style 5-zone system (based on % of estimated max HR ~185 bpm)
+// Office stress zones — calibrated for cognitive/psychological stress, not exercise
 export function getHRZone(bpm: number): HRZone {
-  if (bpm < 111) return 1;  // < 60% — Very Light
-  if (bpm < 130) return 2;  // 60-70% — Light
-  if (bpm < 148) return 3;  // 70-80% — Moderate
-  if (bpm < 167) return 4;  // 80-90% — Hard
-  return 5;                  // > 90% — Maximum
+  if (bpm < 72)  return 1;  // COMPOSED — resting, unfazed
+  if (bpm < 83)  return 2;  // AWARE — mild pressure registering
+  if (bpm < 95)  return 3;  // TENSE — stress is visible
+  if (bpm < 112) return 4;  // STRESSED — notable elevation
+  return 5;                  // OVERLOADED — maximum cognitive stress
 }
 
 export function getZoneColor(zone: HRZone): string {
@@ -88,11 +88,11 @@ export function getZoneColor(zone: HRZone): string {
 
 export function getZoneLabel(zone: HRZone): string {
   switch (zone) {
-    case 1: return 'VERY LIGHT';
-    case 2: return 'LIGHT';
-    case 3: return 'MODERATE';
-    case 4: return 'HARD';
-    case 5: return 'MAXIMUM';
+    case 1: return 'COMPOSED';
+    case 2: return 'AWARE';
+    case 3: return 'TENSE';
+    case 4: return 'STRESSED';
+    case 5: return 'OVERLOADED';
   }
 }
 
