@@ -14,7 +14,7 @@ export type RemoteCommand = 'start' | 'end' | 'reset';
 export type RemoteDataSource = 'dummy' | 'ble';
 
 const DATABASE_URL = import.meta.env.VITE_FIREBASE_DATABASE_URL as string | undefined;
-const REMOTE_PIN = (import.meta.env.VITE_REMOTE_PIN as string | undefined) || 'quadient';
+const REMOTE_PIN = ((import.meta.env.VITE_REMOTE_PIN as string | undefined) || 'quadient').trim();
 
 let db: Database | null = null;
 let lastCommandAt = 0;
