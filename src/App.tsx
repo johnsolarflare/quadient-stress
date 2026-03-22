@@ -212,10 +212,11 @@ export default function App() {
   };
 
   const handleStartSession = () => {
-    // Use dummy if in dummy mode OR if BLE selected but sensor not actually connected
-    const usingDummy = dataSource === 'dummy' || connectionState !== 'connected';
-    if (usingDummy) {
-      if (dataSource !== 'dummy') setDataSource('dummy');
+    if (dataSource === 'ble' && connectionState !== 'connected') {
+      alert('Connect your Polar sensor first — open the Operator Panel and click Connect.');
+      return;
+    }
+    if (dataSource === 'dummy') {
       dummyService.current.onReading = handleReading;
       dummyService.current.onConnectionChange = setConnectionState;
       dummyService.current.onBatteryUpdate = setBatteryLevel;
