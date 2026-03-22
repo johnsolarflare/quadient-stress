@@ -81,6 +81,7 @@ export default function App() {
   });
   const [panelOpen, setPanelOpen] = useState(false);
   const [startTime, setStartTime] = useState<number | null>(null);
+  const [bleError, setBleError] = useState<string | null>(null);
 
   // Visual sensitivity & operator override
   const [sensitivityMultiplier] = useState(1.0);
@@ -184,12 +185,22 @@ export default function App() {
 
   const handleConnect = async () => {
     if (dataSource === 'ble') {
+      const supportError = BLEService.getSupportError();
+      if (supportError) {
+        setBleError(supportError);
+        return;
+      }
+      setBleError(null);
       try {
         bleService.current.onReading = handleReading;
         bleService.current.onConnectionChange = setConnectionState;
         bleService.current.onBatteryUpdate = setBatteryLevel;
         await bleService.current.requestDevice();
       } catch (err) {
+        // User cancelled the picker — don't show an error
+        if (err instanceof Error && err.name === 'NotFoundError') return;
+        const msg = err instanceof Error ? err.message : 'Bluetooth connection failed.';
+        setBleError(msg);
         console.error('BLE connection failed:', err);
       }
     } else {
@@ -309,6 +320,9 @@ export default function App() {
         case '2':
           if (sessionState === 'idle') {
             e.preventDefault();
+            const supportError = BLEService.getSupportError();
+            if (supportError) { setBleError(supportError); break; }
+            setBleError(null);
             setDataSource('ble');
             bleService.current.onReading = handleReading;
             bleService.current.onConnectionChange = setConnectionState;
@@ -316,6 +330,8 @@ export default function App() {
             bleService.current.requestDevice().then(() => {
               handleStartSession();
             }).catch((err) => {
+              if (err instanceof Error && err.name === 'NotFoundError') return;
+              setBleError(err instanceof Error ? err.message : 'Bluetooth connection failed.');
               console.error('BLE connection failed:', err);
             });
           }
@@ -699,6 +715,8 @@ export default function App() {
         onToggleDataSource={handleToggleDataSource}
         aggregatedStats={aggregatedStats}
         onStatsRefresh={refreshStats}
+        bleError={bleError}
+        onClearBleError={() => setBleError(null)}
       />
     </div>
   );

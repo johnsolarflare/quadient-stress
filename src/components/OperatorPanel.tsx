@@ -17,6 +17,8 @@ interface OperatorPanelProps {
   onToggleDataSource: () => void;
   aggregatedStats: AggregatedStats;
   onStatsRefresh: () => void;
+  bleError?: string | null;
+  onClearBleError?: () => void;
 }
 
 export function OperatorPanel({
@@ -34,6 +36,8 @@ export function OperatorPanel({
   onToggleDataSource,
   aggregatedStats,
   onStatsRefresh,
+  bleError,
+  onClearBleError,
 }: OperatorPanelProps) {
   const [exportStatus, setExportStatus] = useState('');
 
@@ -201,6 +205,31 @@ export function OperatorPanel({
           >
             SENSOR CONNECTION
           </label>
+          {bleError && (
+            <div
+              style={{
+                background: 'rgba(239, 68, 68, 0.12)',
+                border: '1px solid rgba(239, 68, 68, 0.3)',
+                borderRadius: '8px',
+                padding: '0.625rem 0.75rem',
+                marginBottom: '0.5rem',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'flex-start',
+                gap: '0.5rem',
+              }}
+            >
+              <span style={{ fontSize: '0.75rem', fontFamily: 'Rubik, sans-serif', color: '#FCA5A5', lineHeight: 1.4 }}>
+                {bleError}
+              </span>
+              <button
+                onClick={onClearBleError}
+                style={{ background: 'none', border: 'none', color: '#FCA5A5', cursor: 'pointer', fontSize: '1rem', padding: 0, flexShrink: 0 }}
+              >
+                ✕
+              </button>
+            </div>
+          )}
           {connectionState === 'connected' ? (
             <div>
               <div

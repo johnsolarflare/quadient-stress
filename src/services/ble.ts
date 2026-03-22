@@ -16,18 +16,34 @@ export class BLEService implements DataSourceInterface {
     return 'bluetooth' in navigator;
   }
 
-  async requestDevice(): Promise<void> {
+  static isIOS(): boolean {
+    return /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as unknown as Record<string, unknown>).MSStream as boolean;
+  }
+
+  static getSupportError(): string | null {
+    if (BLEService.isIOS()) {
+      return 'Bluetooth is not supported on iOS. Switch to Demo Mode, or use the Bluefy browser app on your iPhone/iPad.';
+    }
     if (!BLEService.isSupported()) {
-      throw new Error('Web Bluetooth is not supported in this browser. Use Chrome or Edge.');
+      return 'Web Bluetooth is not supported in this browser. Use Chrome or Edge on desktop or Android.';
+    }
+    return null;
+  }
+
+  async requestDevice(): Promise<void> {
+    const supportError = BLEService.getSupportError();
+    if (supportError) {
+      throw new Error(supportError);
     }
 
     this.onConnectionChange?.('connecting');
 
     try {
+      // Only filter by namePrefix — service-based filters are unreliable on Windows
+      // (Windows BLE scanning doesn't consistently advertise service UUIDs)
       this.device = await navigator.bluetooth.requestDevice({
         filters: [
           { namePrefix: 'Polar' },
-          { services: [0x180d] }, // any device advertising Heart Rate service
         ],
         optionalServices: [0x180d, 0x180f], // Heart Rate + Battery
       });
