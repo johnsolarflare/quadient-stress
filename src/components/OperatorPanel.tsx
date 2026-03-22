@@ -12,7 +12,6 @@ interface OperatorPanelProps {
   onConnect: () => void;
   onDisconnect: () => void;
   onStartSession: () => void;
-  onStartDemoSession: () => void;
   onEndSession: () => void;
   onResetSession: () => void;
   onToggleDataSource: () => void;
@@ -32,7 +31,6 @@ export function OperatorPanel({
   onConnect,
   onDisconnect,
   onStartSession,
-  onStartDemoSession,
   onEndSession,
   onResetSession,
   onToggleDataSource,
@@ -168,10 +166,9 @@ export function OperatorPanel({
           </label>
           <div style={{ display: 'flex', gap: '0.5rem' }}>
             <button
-              onClick={() => dataSource !== 'ble' && onToggleDataSource()}
-              disabled={sessionState !== 'idle'}
+              onClick={() => dataSource !== 'ble' && sessionState === 'idle' && onToggleDataSource()}
               style={{
-                ...btnStyle(dataSource === 'ble' ? '#3860BE' : '#1F2937', sessionState !== 'idle'),
+                ...btnStyle(dataSource === 'ble' ? '#3860BE' : '#1F2937'),
                 flex: 1,
                 opacity: dataSource === 'ble' ? 1 : 0.45,
                 outline: dataSource === 'ble' ? '1.5px solid #3860BE80' : 'none',
@@ -180,16 +177,11 @@ export function OperatorPanel({
               Polar Sensor
             </button>
             <button
-              onClick={() => {
-                if (sessionState !== 'idle') return;
-                onStartDemoSession();
-                onClose();
-              }}
-              disabled={sessionState !== 'idle'}
+              onClick={() => dataSource !== 'dummy' && sessionState === 'idle' && onToggleDataSource()}
               style={{
-                ...btnStyle(dataSource === 'dummy' ? '#FF4200' : '#1F2937', sessionState !== 'idle'),
+                ...btnStyle(dataSource === 'dummy' ? '#FF4200' : '#1F2937'),
                 flex: 1,
-                opacity: sessionState !== 'idle' ? 0.45 : 1,
+                opacity: dataSource === 'dummy' ? 1 : 0.45,
                 outline: dataSource === 'dummy' ? '1.5px solid #FF420080' : 'none',
               }}
             >

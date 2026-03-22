@@ -731,7 +731,6 @@ export default function App() {
         onConnect={handleConnect}
         onDisconnect={handleDisconnect}
         onStartSession={handleStartSession}
-        onStartDemoSession={handleStartDemoSession}
         onEndSession={handleEndSession}
         onResetSession={handleResetSession}
         onToggleDataSource={handleToggleDataSource}
