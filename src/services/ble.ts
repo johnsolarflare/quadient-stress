@@ -25,7 +25,10 @@ export class BLEService implements DataSourceInterface {
 
     try {
       this.device = await navigator.bluetooth.requestDevice({
-        filters: [{ namePrefix: 'Polar Sense' }],
+        filters: [
+          { namePrefix: 'Polar' },
+          { services: [0x180d] }, // any device advertising Heart Rate service
+        ],
         optionalServices: [0x180d, 0x180f], // Heart Rate + Battery
       });
 
