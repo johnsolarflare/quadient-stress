@@ -354,7 +354,7 @@ export default function App() {
   const stressColor = getZoneColor(zone);
   const isActive = sessionState === 'active';
 
-  // Debounced stable zone — zone must be steady for 2s before display updates
+  // Fast zone debounce (500ms) for the gauge — reacts quickly to real changes
   const stableZoneTimerRef = useRef<number | null>(null);
   const [stableZone, setStableZone] = useState<HRZone>(zone);
   useEffect(() => {
@@ -362,23 +362,37 @@ export default function App() {
     stableZoneTimerRef.current = window.setTimeout(() => {
       setStableZone(zone);
       stableZoneTimerRef.current = null;
-    }, 2000);
+    }, 500);
     return () => {
       if (stableZoneTimerRef.current) clearTimeout(stableZoneTimerRef.current);
     };
   }, [zone]);
 
-  // Pun variant cycles every 8s (independent of zone changes)
+  // Slow zone debounce (10s) for puns — prevents flip-flopping at zone boundaries
+  const punZoneTimerRef = useRef<number | null>(null);
+  const [punZone, setPunZone] = useState<HRZone>(zone);
+  useEffect(() => {
+    if (punZoneTimerRef.current) clearTimeout(punZoneTimerRef.current);
+    punZoneTimerRef.current = window.setTimeout(() => {
+      setPunZone(zone);
+      punZoneTimerRef.current = null;
+    }, 10000);
+    return () => {
+      if (punZoneTimerRef.current) clearTimeout(punZoneTimerRef.current);
+    };
+  }, [zone]);
+
+  // Pun variant cycles every 12s (independent of zone changes)
   const [punVariantIndex, setPunVariantIndex] = useState(0);
   useEffect(() => {
     if (!isActive) return;
-    const id = setInterval(() => setPunVariantIndex((i) => i + 1), 8000);
+    const id = setInterval(() => setPunVariantIndex((i) => i + 1), 12000);
     return () => clearInterval(id);
   }, [isActive]);
 
   const zonePun = useMemo(
-    () => ZONE_PUNS[stableZone][punVariantIndex % ZONE_PUNS[stableZone].length],
-    [stableZone, punVariantIndex],
+    () => ZONE_PUNS[punZone][punVariantIndex % ZONE_PUNS[punZone].length],
+    [punZone, punVariantIndex],
   );
 
   return (
