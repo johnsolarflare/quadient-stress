@@ -12,6 +12,7 @@ interface OperatorPanelProps {
   onConnect: () => void;
   onDisconnect: () => void;
   onStartSession: () => void;
+  onStartDemoSession: () => void;
   onEndSession: () => void;
   onResetSession: () => void;
   onToggleDataSource: () => void;
@@ -31,6 +32,7 @@ export function OperatorPanel({
   onConnect,
   onDisconnect,
   onStartSession,
+  onStartDemoSession,
   onEndSession,
   onResetSession,
   onToggleDataSource,
@@ -167,8 +169,9 @@ export function OperatorPanel({
           <div style={{ display: 'flex', gap: '0.5rem' }}>
             <button
               onClick={() => dataSource !== 'ble' && onToggleDataSource()}
+              disabled={sessionState !== 'idle'}
               style={{
-                ...btnStyle(dataSource === 'ble' ? '#3860BE' : '#1F2937'),
+                ...btnStyle(dataSource === 'ble' ? '#3860BE' : '#1F2937', sessionState !== 'idle'),
                 flex: 1,
                 opacity: dataSource === 'ble' ? 1 : 0.45,
                 outline: dataSource === 'ble' ? '1.5px solid #3860BE80' : 'none',
@@ -177,11 +180,16 @@ export function OperatorPanel({
               Polar Sensor
             </button>
             <button
-              onClick={() => dataSource !== 'dummy' && onToggleDataSource()}
+              onClick={() => {
+                if (sessionState !== 'idle') return;
+                onStartDemoSession();
+                onClose();
+              }}
+              disabled={sessionState !== 'idle'}
               style={{
-                ...btnStyle(dataSource === 'dummy' ? '#FF4200' : '#1F2937'),
+                ...btnStyle(dataSource === 'dummy' ? '#FF4200' : '#1F2937', sessionState !== 'idle'),
                 flex: 1,
-                opacity: dataSource === 'dummy' ? 1 : 0.45,
+                opacity: sessionState !== 'idle' ? 0.45 : 1,
                 outline: dataSource === 'dummy' ? '1.5px solid #FF420080' : 'none',
               }}
             >
