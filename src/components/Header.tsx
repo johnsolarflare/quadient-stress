@@ -46,8 +46,7 @@ export function Header({ connectionState, batteryLevel, dataSource, onLogoDouble
         <img
           src="/quadient-logo.png"
           alt="Quadient"
-          height="32"
-          style={{ display: 'block' }}
+          style={{ display: 'block', height: '32px', width: 'auto' }}
         />
         {isMobile && (
           <span style={{
