@@ -44,7 +44,6 @@ export function RemoteControl() {
     fontFamily: 'Quicksand, sans-serif',
     fontWeight: 700,
     fontSize: '1.125rem',
-    letterSpacing: '0.08em',
     cursor: sending ? 'not-allowed' : 'pointer',
     opacity: sending ? 0.6 : 1,
     transition: 'opacity 0.2s',
@@ -57,31 +56,31 @@ export function RemoteControl() {
       <div
         style={{
           width: '100vw', height: '100vh',
-          backgroundColor: '#0a0a0f', color: '#ffffff',
+          backgroundColor: '#111827', color: '#ffffff',
           display: 'flex', flexDirection: 'column',
           alignItems: 'center', justifyContent: 'center',
           gap: '1rem', padding: '2rem', boxSizing: 'border-box',
         }}
       >
         <div style={{ fontSize: '2rem' }}>🔒</div>
-        <div style={{ fontFamily: 'Quicksand, sans-serif', fontWeight: 700, fontSize: '1.125rem', color: '#EF4444' }}>
+        <div style={{ fontFamily: 'Quicksand, sans-serif', fontWeight: 700, fontSize: '1.125rem', color: '#CC3400' }}>
           Invalid access code
         </div>
-        <div style={{ fontFamily: 'Rubik, sans-serif', fontSize: '0.875rem', color: '#5C6371', textAlign: 'center' }}>
+        <div style={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.875rem', color: '#5C6371', textAlign: 'center' }}>
           Ask the event organiser for the correct remote control link.
         </div>
       </div>
     );
   }
 
-  const connColor = connectionState === 'connected' ? '#22C55E' : connectionState === 'connecting' ? '#FBBF24' : '#5C6371';
+  const connColor = connectionState === 'connected' ? '#05B9F0' : connectionState === 'connecting' ? '#FF4200' : '#5C6371';
   const connLabel = connectionState === 'connected' ? 'Connected' : connectionState === 'connecting' ? 'Connecting…' : 'Not connected';
 
   return (
     <div
       style={{
         width: '100vw', height: '100vh',
-        backgroundColor: '#0a0a0f', color: '#ffffff',
+        backgroundColor: '#111827', color: '#ffffff',
         display: 'flex', flexDirection: 'column',
         alignItems: 'center', justifyContent: 'center',
         gap: '1.25rem', padding: '2rem', boxSizing: 'border-box',
@@ -89,11 +88,11 @@ export function RemoteControl() {
     >
       {/* Header */}
       <div style={{ textAlign: 'center' }}>
-        <div style={{ fontSize: '1.5rem', fontFamily: 'Quicksand, sans-serif', fontWeight: 700, color: '#FF4200', letterSpacing: '0.1em' }}>
-          REMOTE CONTROL
+        <div style={{ fontSize: '1.5rem', fontFamily: 'Quicksand, sans-serif', fontWeight: 700, color: '#FF4200' }}>
+          Remote Control
         </div>
-        <div style={{ fontSize: '0.75rem', fontFamily: 'Quicksand, sans-serif', color: '#5C6371', letterSpacing: '0.08em', marginTop: '0.2rem' }}>
-          QUADIENT STRESS DASHBOARD
+        <div style={{ fontSize: '0.75rem', fontFamily: 'Quicksand, sans-serif', color: '#5C6371', marginTop: '0.2rem' }}>
+          Quadient Stress Dashboard
         </div>
       </div>
 
@@ -103,7 +102,7 @@ export function RemoteControl() {
           <div style={{ fontSize: '4rem', fontFamily: 'Quicksand, sans-serif', fontWeight: 700, color: '#FF4200', lineHeight: 1 }}>
             {bpm > 0 ? bpm : '--'}
           </div>
-          <div style={{ fontSize: '0.75rem', fontFamily: 'Quicksand, sans-serif', fontWeight: 600, color: '#5C6371', letterSpacing: '0.12em', marginTop: '0.25rem' }}>
+          <div style={{ fontSize: '0.75rem', fontFamily: 'Quicksand, sans-serif', fontWeight: 600, color: '#5C6371', marginTop: '0.25rem' }}>
             BPM
           </div>
         </div>
@@ -112,17 +111,17 @@ export function RemoteControl() {
       {/* Session status */}
       <div style={{
         padding: '0.375rem 1rem', borderRadius: '999px',
-        background: sessionState === 'active' ? '#22C55E20' : sessionState === 'completed' ? '#FF420020' : 'rgba(255,255,255,0.05)',
-        color: sessionState === 'active' ? '#22C55E' : sessionState === 'completed' ? '#FF4200' : '#5C6371',
-        fontSize: '0.75rem', fontFamily: 'Quicksand, sans-serif', fontWeight: 700, letterSpacing: '0.1em',
+        background: sessionState === 'active' ? '#05B9F020' : sessionState === 'completed' ? '#FF420020' : 'rgba(255,255,255,0.05)',
+        color: sessionState === 'active' ? '#05B9F0' : sessionState === 'completed' ? '#FF4200' : '#5C6371',
+        fontSize: '0.75rem', fontFamily: 'Quicksand, sans-serif', fontWeight: 700,
       }}>
-        {sessionState === 'active' ? '● SESSION LIVE' : sessionState === 'completed' ? '✓ SESSION COMPLETE' : '○ WAITING'}
+        {sessionState === 'active' ? '● Session Live' : sessionState === 'completed' ? '✓ Session Complete' : '○ Waiting'}
       </div>
 
       {/* Data source + connection */}
       <div style={{ width: '100%', background: 'rgba(255,255,255,0.03)', borderRadius: '10px', padding: '0.875rem 1rem' }}>
-        <div style={{ fontSize: '0.625rem', fontFamily: 'Quicksand, sans-serif', fontWeight: 600, color: '#5C6371', letterSpacing: '0.1em', marginBottom: '0.5rem' }}>
-          DATA SOURCE
+        <div style={{ fontSize: '0.625rem', fontFamily: 'Quicksand, sans-serif', fontWeight: 600, color: '#5C6371', marginBottom: '0.5rem' }}>
+          Data Source
         </div>
         <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.625rem' }}>
           <button
@@ -157,11 +156,11 @@ export function RemoteControl() {
         {dataSource === 'ble' && (
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
             <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: connColor, flexShrink: 0 }} />
-            <span style={{ fontSize: '0.75rem', fontFamily: 'Rubik, sans-serif', color: connColor }}>
+            <span style={{ fontSize: '0.75rem', fontFamily: 'Montserrat, sans-serif', color: connColor }}>
               {connLabel}
             </span>
             {connectionState !== 'connected' && (
-              <span style={{ fontSize: '0.7rem', fontFamily: 'Rubik, sans-serif', color: '#5C6371', marginLeft: '0.25rem' }}>
+              <span style={{ fontSize: '0.7rem', fontFamily: 'Montserrat, sans-serif', color: '#5C6371', marginLeft: '0.25rem' }}>
                 — connect on the main screen
               </span>
             )}
@@ -172,23 +171,23 @@ export function RemoteControl() {
       {/* Session controls */}
       <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
         {sessionState === 'idle' && (
-          <button onClick={() => dispatch('start')} style={{ ...btnBase, background: '#22C55E' }}>
-            START SESSION
+          <button onClick={() => dispatch('start')} style={{ ...btnBase, background: '#05B9F0' }}>
+            Start Session
           </button>
         )}
         {sessionState === 'active' && (
-          <button onClick={() => dispatch('end')} style={{ ...btnBase, background: '#EF4444' }}>
-            END SESSION
+          <button onClick={() => dispatch('end')} style={{ ...btnBase, background: '#CC3400' }}>
+            End Session
           </button>
         )}
         {sessionState === 'completed' && (
           <button onClick={() => dispatch('reset')} style={{ ...btnBase, background: '#FF4200' }}>
-            NEXT PARTICIPANT
+            Next Participant
           </button>
         )}
       </div>
 
-      <div style={{ fontSize: '0.6875rem', fontFamily: 'Quicksand, sans-serif', color: '#5C637140', textAlign: 'center', letterSpacing: '0.05em' }}>
+      <div style={{ fontSize: '0.6875rem', fontFamily: 'Quicksand, sans-serif', color: '#5C637140', textAlign: 'center' }}>
         Controls synced live with the dashboard screen
       </div>
     </div>

@@ -40,7 +40,7 @@ export function SessionTimer({ startTime, isActive }: SessionTimerProps) {
             width: '10px',
             height: '10px',
             borderRadius: '50%',
-            background: '#EF4444',
+            background: '#CC3400',
             animation: 'blink 1s ease-in-out infinite',
           }}
         />

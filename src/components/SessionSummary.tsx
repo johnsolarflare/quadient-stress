@@ -20,7 +20,7 @@ export function SessionSummary({ stats }: SessionSummaryProps) {
           background: 'rgba(255, 255, 255, 0.02)',
           border: '1px solid rgba(255, 255, 255, 0.04)',
           textAlign: 'center',
-          fontFamily: 'Rubik, sans-serif',
+          fontFamily: 'Montserrat, sans-serif',
           color: '#5C637160',
           fontSize: 'clamp(0.75rem, 1.2vw, 0.875rem)',
         }}
@@ -52,11 +52,10 @@ export function SessionSummary({ stats }: SessionSummaryProps) {
           fontWeight: 600,
           fontFamily: 'Quicksand, sans-serif',
           color: '#5C637180',
-          letterSpacing: '0.15em',
           marginBottom: '0.75rem',
         }}
       >
-        TODAY'S SESSIONS
+        Today's Sessions
       </div>
       <div
         style={{
@@ -81,7 +80,7 @@ export function SessionSummary({ stats }: SessionSummaryProps) {
             <div
               style={{
                 fontSize: 'clamp(0.5rem, 0.8vw, 0.6875rem)',
-                fontFamily: 'Rubik, sans-serif',
+                fontFamily: 'Montserrat, sans-serif',
                 color: '#5C637180',
                 marginTop: '0.125rem',
               }}

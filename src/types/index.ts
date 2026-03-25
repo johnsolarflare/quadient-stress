@@ -51,10 +51,10 @@ export function getStressLevel(bpm: number): StressLevel {
 
 export function getStressColor(level: StressLevel): string {
   switch (level) {
-    case 'calm': return '#22C55E';
+    case 'calm': return '#05B9F0';
     case 'moderate': return '#FF4200';
-    case 'elevated': return '#EF4444';
-    case 'max': return '#DC2626';
+    case 'elevated': return '#CC3400';
+    case 'max': return '#CC3400';
   }
 }
 
@@ -78,11 +78,11 @@ export function getHRZone(bpm: number): HRZone {
 
 export function getZoneColor(zone: HRZone): string {
   switch (zone) {
-    case 1: return '#60A5FA'; // blue — very light
-    case 2: return '#22C55E'; // green — light
-    case 3: return '#FBBF24'; // amber — moderate
-    case 4: return '#FF4200'; // orange-red — hard (Quadient brand)
-    case 5: return '#EF4444'; // red — maximum
+    case 1: return '#05B9F0'; // q-Blue — calm, trustworthy
+    case 2: return '#9CA3AF'; // q-Graphite light — aware, neutral
+    case 3: return '#7536F0'; // q-Violet — tension, pressure
+    case 4: return '#FF4200'; // q-Orange — urgency (Quadient brand)
+    case 5: return '#CC3400'; // q-Orange accessible — maximum stress
   }
 }
 

@@ -110,7 +110,7 @@ export function OperatorPanel({
           right: 0,
           bottom: 0,
           width: '320px',
-          background: '#0e0e18',
+          background: '#0a0f1a',
           borderLeft: '1px solid rgba(255, 255, 255, 0.07)',
           zIndex: 999,
           padding: '1.5rem',
@@ -157,12 +157,11 @@ export function OperatorPanel({
               fontFamily: 'Quicksand, sans-serif',
               fontWeight: 600,
               color: '#5C6371',
-              letterSpacing: '0.1em',
               display: 'block',
               marginBottom: '0.375rem',
             }}
           >
-            DATA SOURCE
+            Data Source
           </label>
           <div style={{ display: 'flex', gap: '0.5rem' }}>
             <button
@@ -198,12 +197,11 @@ export function OperatorPanel({
               fontFamily: 'Quicksand, sans-serif',
               fontWeight: 600,
               color: '#5C6371',
-              letterSpacing: '0.1em',
               display: 'block',
               marginBottom: '0.375rem',
             }}
           >
-            SENSOR CONNECTION
+            Sensor Connection
           </label>
           {bleError && (
             <div
@@ -219,7 +217,7 @@ export function OperatorPanel({
                 gap: '0.5rem',
               }}
             >
-              <span style={{ fontSize: '0.75rem', fontFamily: 'Rubik, sans-serif', color: '#FCA5A5', lineHeight: 1.4 }}>
+              <span style={{ fontSize: '0.75rem', fontFamily: 'Montserrat, sans-serif', color: '#FCA5A5', lineHeight: 1.4 }}>
                 {bleError}
               </span>
               <button
@@ -238,14 +236,14 @@ export function OperatorPanel({
                   justifyContent: 'space-between',
                   marginBottom: '0.5rem',
                   fontSize: '0.8125rem',
-                  fontFamily: 'Rubik, sans-serif',
-                  color: '#22C55E',
+                  fontFamily: 'Montserrat, sans-serif',
+                  color: '#05B9F0',
                 }}
               >
                 <span>Connected</span>
                 {batteryLevel !== null && <span>Battery: {batteryLevel}%</span>}
               </div>
-              <button onClick={onDisconnect} style={btnStyle('#EF4444')}>
+              <button onClick={onDisconnect} style={btnStyle('#CC3400')}>
                 Disconnect
               </button>
             </div>
@@ -253,7 +251,7 @@ export function OperatorPanel({
             <button
               onClick={onConnect}
               disabled={connectionState === 'connecting' || dataSource === 'dummy'}
-              style={btnStyle('#22C55E', connectionState === 'connecting' || dataSource === 'dummy')}
+              style={btnStyle('#05B9F0', connectionState === 'connecting' || dataSource === 'dummy')}
             >
               {connectionState === 'connecting' ? 'Connecting...' : 'Connect Sensor'}
             </button>
@@ -268,21 +266,20 @@ export function OperatorPanel({
               fontFamily: 'Quicksand, sans-serif',
               fontWeight: 600,
               color: '#5C6371',
-              letterSpacing: '0.1em',
               display: 'block',
               marginBottom: '0.375rem',
             }}
           >
-            SESSION
+            Session
           </label>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
             {sessionState === 'idle' && (
-              <button onClick={onStartSession} style={btnStyle('#22C55E')}>
+              <button onClick={onStartSession} style={btnStyle('#05B9F0')}>
                 Start New Session
               </button>
             )}
             {sessionState === 'active' && (
-              <button onClick={onEndSession} style={btnStyle('#EF4444')}>
+              <button onClick={onEndSession} style={btnStyle('#CC3400')}>
                 End Session
               </button>
             )}
@@ -302,12 +299,11 @@ export function OperatorPanel({
               fontFamily: 'Quicksand, sans-serif',
               fontWeight: 600,
               color: '#5C6371',
-              letterSpacing: '0.1em',
               display: 'block',
               marginBottom: '0.375rem',
             }}
           >
-            TODAY'S STATS
+            Today's Stats
           </label>
           <div
             style={{
@@ -315,7 +311,7 @@ export function OperatorPanel({
               borderRadius: '8px',
               padding: '0.75rem',
               fontSize: '0.8125rem',
-              fontFamily: 'Rubik, sans-serif',
+              fontFamily: 'Montserrat, sans-serif',
               color: '#9CA3AF',
               display: 'flex',
               flexDirection: 'column',
@@ -332,7 +328,7 @@ export function OperatorPanel({
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between' }}>
               <span>Highest HR:</span>
-              <span style={{ color: '#EF4444' }}>{aggregatedStats.highestHR || '--'}</span>
+              <span style={{ color: '#CC3400' }}>{aggregatedStats.highestHR || '--'}</span>
             </div>
           </div>
         </div>

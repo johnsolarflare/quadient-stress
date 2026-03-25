@@ -32,10 +32,9 @@ export function StressGauge({ bpm, isActive, stableZone }: StressGaugeProps) {
             fontWeight: 600,
             fontFamily: 'Quicksand, sans-serif',
             color: '#5C6371',
-            letterSpacing: '0.12em',
           }}
         >
-          HR ZONE
+          Hr Zone
         </span>
         <span
           style={{
@@ -44,7 +43,6 @@ export function StressGauge({ bpm, isActive, stableZone }: StressGaugeProps) {
             fontFamily: 'Quicksand, sans-serif',
             color: isActive ? color : '#5C6371',
             transition: 'color 0.3s ease',
-            letterSpacing: '0.08em',
           }}
         >
           {isActive ? label : '--'}

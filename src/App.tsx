@@ -423,7 +423,7 @@ export default function App() {
       style={{
         width: '100vw',
         height: '100vh',
-        backgroundColor: '#0a0a0f',
+        backgroundColor: '#111827',
         color: '#ffffff',
         display: 'flex',
         flexDirection: 'column',
@@ -477,7 +477,7 @@ export default function App() {
             {/* HR Zone + pun + timer */}
             <div style={{ flexShrink: 0, display: 'flex', flexDirection: 'column', gap: '0.2rem' }}>
               <StressGauge bpm={visualBPM} isActive={isActive} stableZone={stableZone} />
-              <div key={stableZone} style={{ fontSize: '0.78rem', fontFamily: 'Rubik, sans-serif', color: `${stressColor}90`, fontStyle: 'italic', animation: 'fadeIn 0.6s ease' }}>
+              <div key={stableZone} style={{ fontSize: '0.78rem', fontFamily: 'Montserrat, sans-serif', color: `${stressColor}90`, fontStyle: 'italic', animation: 'fadeIn 0.6s ease' }}>
                 {zonePun}
               </div>
               <SessionTimer startTime={startTime} isActive={isActive} />
@@ -513,7 +513,7 @@ export default function App() {
                 key={stableZone}
                 style={{
                   fontSize: 'clamp(0.7rem, 1.1vw, 0.85rem)',
-                  fontFamily: 'Rubik, sans-serif',
+                  fontFamily: 'Montserrat, sans-serif',
                   color: `${stressColor}90`,
                   fontStyle: 'italic',
                   animation: 'fadeIn 0.6s ease',
@@ -556,10 +556,9 @@ export default function App() {
                   fontFamily: 'Quicksand, sans-serif',
                   fontWeight: 700,
                   color: '#FF4200',
-                  letterSpacing: '0.15em',
                 }}
               >
-                SESSION COMPLETE
+                Session Complete
               </div>
               <div style={{ textAlign: 'center' }}>
                 <div
@@ -567,7 +566,7 @@ export default function App() {
                     fontSize: 'clamp(3rem, 8vw, 6rem)',
                     fontFamily: 'Quicksand, sans-serif',
                     fontWeight: 700,
-                    color: '#EF4444',
+                    color: '#CC3400',
                     lineHeight: 1,
                   }}
                 >
@@ -579,17 +578,16 @@ export default function App() {
                     fontFamily: 'Quicksand, sans-serif',
                     fontWeight: 600,
                     color: '#5C6371',
-                    letterSpacing: '0.15em',
                     marginTop: '0.25rem',
                   }}
                 >
-                  PEAK BPM
+                  Peak BPM
                 </div>
               </div>
               <div style={{ display: 'flex', gap: 'clamp(1.5rem, 4vw, 3rem)', justifyContent: 'center' }}>
                 {[
-                  { label: 'AVG BPM', value: sessionStats?.avgHR ?? '--' },
-                  { label: 'MIN BPM', value: sessionStats?.minHR ?? '--' },
+                  { label: 'Avg BPM', value: sessionStats?.avgHR ?? '--' },
+                  { label: 'Min BPM', value: sessionStats?.minHR ?? '--' },
                   {
                     label: 'DURATION', value: (() => {
                       if (!sessionStats?.startTime) return '--:--';
@@ -603,7 +601,7 @@ export default function App() {
                     <div style={{ fontSize: 'clamp(1.25rem, 2.5vw, 2rem)', fontFamily: 'Quicksand, sans-serif', fontWeight: 700, color: '#ffffff' }}>
                       {value}
                     </div>
-                    <div style={{ fontSize: 'clamp(0.625rem, 1vw, 0.75rem)', fontFamily: 'Quicksand, sans-serif', fontWeight: 600, color: '#5C637180', letterSpacing: '0.1em' }}>
+                    <div style={{ fontSize: 'clamp(0.625rem, 1vw, 0.75rem)', fontFamily: 'Quicksand, sans-serif', fontWeight: 600, color: '#5C637180' }}>
                       {label}
                     </div>
                   </div>
@@ -643,18 +641,17 @@ export default function App() {
                   fontWeight: 700,
                   color: '#FF4200',
                   animation: 'breathe 3s ease-in-out infinite',
-                  letterSpacing: '0.08em',
                   textShadow: '0 0 40px #FF420060',
                   textAlign: 'center',
                 }}
               >
-                NEXT CHALLENGER
+                Next Challenger
               </div>
               <div
                 key={idlePunIndex}
                 style={{
                   fontSize: isMobile ? '0.95rem' : 'clamp(0.8rem, 1.4vw, 1.05rem)',
-                  fontFamily: 'Rubik, sans-serif',
+                  fontFamily: 'Montserrat, sans-serif',
                   color: '#5C6371',
                   fontStyle: 'italic',
                   animation: 'punFade 5s ease forwards',
@@ -699,10 +696,9 @@ export default function App() {
               fontFamily: 'Quicksand, sans-serif',
               fontWeight: 600,
               color: '#5C637140',
-              letterSpacing: '0.05em',
             }}
           >
-            LESS CHAOS. MORE AUTOMATION.
+            Make room for the remarkable.
           </span>
         </footer>
       </main>

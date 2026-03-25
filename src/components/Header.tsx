@@ -13,17 +13,17 @@ export function Header({ connectionState, batteryLevel, dataSource, onLogoDouble
   const isDemo = dataSource === 'dummy' || dataSource === undefined;
 
   const statusColors: Record<ConnectionState, string> = {
-    connected: isDemo ? '#5C8FA0' : '#22C55E',
+    connected: isDemo ? '#05B9F0' : '#05B9F0',
     connecting: '#FF4200',
-    reconnecting: '#EF4444',
+    reconnecting: '#CC3400',
     disconnected: '#5C6371',
   };
 
   const statusLabels: Record<ConnectionState, string> = {
-    connected: isDemo ? 'DEMO' : 'CONNECTED',
-    connecting: 'CONNECTING...',
-    reconnecting: 'RECONNECTING...',
-    disconnected: isDemo ? 'DEMO' : 'DISCONNECTED',
+    connected: isDemo ? 'Demo' : 'Connected',
+    connecting: 'Connecting...',
+    reconnecting: 'Reconnecting...',
+    disconnected: isDemo ? 'Demo' : 'Disconnected',
   };
 
   return (
@@ -62,9 +62,8 @@ export function Header({ connectionState, batteryLevel, dataSource, onLogoDouble
             fontFamily: 'Quicksand, sans-serif',
             fontWeight: 600,
             color: '#5C6371',
-            letterSpacing: '0.2em',
           }}>
-            STRESS TEST
+            Stress Test
           </span>
         )}
       </div>
@@ -77,10 +76,9 @@ export function Header({ connectionState, batteryLevel, dataSource, onLogoDouble
             fontWeight: 700,
             fontFamily: 'Quicksand, sans-serif',
             color: '#ffffff',
-            letterSpacing: '0.2em',
           }}
         >
-          STRESS TEST
+          Stress Test
         </div>
       )}
 
@@ -90,8 +88,8 @@ export function Header({ connectionState, batteryLevel, dataSource, onLogoDouble
           <span
             style={{
               fontSize: '0.75rem',
-              fontFamily: 'Rubik, sans-serif',
-              color: batteryLevel < 20 ? '#EF4444' : '#5C6371',
+              fontFamily: 'Montserrat, sans-serif',
+              color: batteryLevel < 20 ? '#CC3400' : '#5C6371',
             }}
           >
             {batteryLevel}%
@@ -118,7 +116,6 @@ export function Header({ connectionState, batteryLevel, dataSource, onLogoDouble
               fontFamily: 'Quicksand, sans-serif',
               fontWeight: 600,
               color: statusColors[connectionState],
-              letterSpacing: '0.1em',
             }}
           >
             {statusLabels[connectionState]}

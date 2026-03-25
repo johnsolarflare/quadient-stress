@@ -7,9 +7,9 @@ interface StatsCardsProps {
 
 export function StatsCards({ minHR, avgHR, maxHR, isActive }: StatsCardsProps) {
   const cards = [
-    { label: 'MIN', value: minHR, color: '#22C55E' },
-    { label: 'AVG', value: avgHR, color: '#FF4200' },
-    { label: 'MAX', value: maxHR, color: '#EF4444' },
+    { label: 'Min', value: minHR, color: '#05B9F0' },
+    { label: 'Avg', value: avgHR, color: '#FF4200' },
+    { label: 'Max', value: maxHR, color: '#CC3400' },
   ];
 
   return (
@@ -37,7 +37,6 @@ export function StatsCards({ minHR, avgHR, maxHR, isActive }: StatsCardsProps) {
               fontWeight: 600,
               fontFamily: 'Quicksand, sans-serif',
               color: '#5C6371',
-              letterSpacing: '0.15em',
               marginBottom: '0.25rem',
             }}
           >

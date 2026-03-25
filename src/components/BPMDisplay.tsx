@@ -106,7 +106,6 @@ export function BPMDisplay({ bpm, visualBPM, isActive }: BPMDisplayProps) {
               fontWeight: 600,
               fontFamily: 'Quicksand, sans-serif',
               color: '#5C637180',
-              letterSpacing: '0.15em',
               marginTop: '0.125rem',
             }}
           >
@@ -135,18 +134,16 @@ export function BPMDisplay({ bpm, visualBPM, isActive }: BPMDisplayProps) {
               fontWeight: 700,
               fontFamily: 'Quicksand, sans-serif',
               color,
-              letterSpacing: '0.1em',
               transition: 'all 0.3s ease',
             }}
           >
-            ZONE {zone}
+            Zone {zone}
           </div>
           <div
             style={{
               fontSize: '0.5625rem',
-              fontFamily: 'Rubik, sans-serif',
+              fontFamily: 'Montserrat, sans-serif',
               color: '#5C637180',
-              letterSpacing: '0.1em',
             }}
           >
             {label}
@@ -163,10 +160,9 @@ export function BPMDisplay({ bpm, visualBPM, isActive }: BPMDisplayProps) {
             fontWeight: 600,
             fontFamily: 'Quicksand, sans-serif',
             color: '#5C637140',
-            letterSpacing: '0.1em',
           }}
         >
-          ZONE —
+          Zone —
         </div>
       )}
 

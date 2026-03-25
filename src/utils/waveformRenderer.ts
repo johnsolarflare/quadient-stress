@@ -114,7 +114,7 @@ export function renderWaveform(
   const color = getZoneColor(zone);
 
   // Background
-  ctx.fillStyle = '#0a0a0f';
+  ctx.fillStyle = '#111827';
   ctx.fillRect(0, 0, W, H);
 
   // Very subtle grid
