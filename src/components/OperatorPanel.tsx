@@ -243,7 +243,7 @@ export function OperatorPanel({
                 <span>Connected</span>
                 {batteryLevel !== null && <span>Battery: {batteryLevel}%</span>}
               </div>
-              <button onClick={onDisconnect} style={btnStyle('#CC3400')}>
+              <button onClick={onDisconnect} style={btnStyle('#374151')}>
                 Disconnect
               </button>
             </div>
@@ -251,7 +251,7 @@ export function OperatorPanel({
             <button
               onClick={onConnect}
               disabled={connectionState === 'connecting' || dataSource === 'dummy'}
-              style={btnStyle('#FF4200', connectionState === 'connecting' || dataSource === 'dummy')}
+              style={btnStyle('#05B9F0', connectionState === 'connecting' || dataSource === 'dummy')}
             >
               {connectionState === 'connecting' ? 'Connecting...' : 'Connect Sensor'}
             </button>
@@ -274,7 +274,7 @@ export function OperatorPanel({
           </label>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
             {sessionState === 'idle' && (
-              <button onClick={onStartSession} style={btnStyle('#FF4200')}>
+              <button onClick={onStartSession} style={btnStyle('#05B9F0')}>
                 Start New Session
               </button>
             )}
@@ -284,7 +284,7 @@ export function OperatorPanel({
               </button>
             )}
             {sessionState === 'completed' && (
-              <button onClick={onResetSession} style={btnStyle('#FF4200')}>
+              <button onClick={onResetSession} style={btnStyle('#05B9F0')}>
                 Ready for Next Participant
               </button>
             )}
