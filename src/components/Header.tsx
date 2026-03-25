@@ -41,7 +41,7 @@ export function Header({ connectionState, batteryLevel, dataSource, onLogoDouble
       <div
         onDoubleClick={onLogoDoubleClick}
         onClick={onLogoClick}
-        style={{ display: 'flex', flexDirection: 'column', gap: '0.1rem', cursor: 'default', userSelect: 'none' }}
+        style={{ display: 'flex', flexDirection: 'column', gap: '0.1rem', cursor: 'default', userSelect: 'none', alignItems: 'flex-start' }}
       >
         <img
           src="/quadient-logo.png"

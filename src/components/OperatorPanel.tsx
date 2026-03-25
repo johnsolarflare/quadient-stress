@@ -320,15 +320,15 @@ export function OperatorPanel({
           >
             <div style={{ display: 'flex', justifyContent: 'space-between' }}>
               <span>Sessions:</span>
-              <span style={{ color: '#FF4200' }}>{aggregatedStats.totalSessions}</span>
+              <span style={{ color: '#374151', fontWeight: 700 }}>{aggregatedStats.totalSessions}</span>
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between' }}>
               <span>Avg Peak HR:</span>
-              <span style={{ color: '#FF4200' }}>{aggregatedStats.avgPeakHR || '--'}</span>
+              <span style={{ color: '#374151', fontWeight: 700 }}>{aggregatedStats.avgPeakHR || '--'}</span>
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between' }}>
               <span>Highest HR:</span>
-              <span style={{ color: '#CC3400' }}>{aggregatedStats.highestHR || '--'}</span>
+              <span style={{ color: '#374151', fontWeight: 700 }}>{aggregatedStats.highestHR || '--'}</span>
             </div>
           </div>
         </div>

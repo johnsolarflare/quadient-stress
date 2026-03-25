@@ -78,11 +78,11 @@ export function getHRZone(bpm: number): HRZone {
 
 export function getZoneColor(zone: HRZone): string {
   switch (zone) {
-    case 1: return '#05B9F0'; // q-Blue — calm, trustworthy
-    case 2: return '#9CA3AF'; // q-Graphite light — aware, neutral
-    case 3: return '#7536F0'; // q-Violet — tension, pressure
-    case 4: return '#FF4200'; // q-Orange — urgency (Quadient brand)
-    case 5: return '#CC3400'; // q-Orange accessible — maximum stress
+    case 1: return '#05B9F0'; // q-Blue — composed, trustworthy
+    case 2: return '#7536F0'; // q-Violet — aware, pressure building
+    case 3: return '#FF4200'; // q-Orange — tense, urgency
+    case 4: return '#CC3400'; // accessible orange-red — stressed
+    case 5: return '#8B1A00'; // deep red — overloaded, maximum stress
   }
 }
 

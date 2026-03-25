@@ -478,7 +478,7 @@ export default function App() {
             {/* HR Zone + pun + timer */}
             <div style={{ flexShrink: 0, display: 'flex', flexDirection: 'column', gap: '0.2rem' }}>
               <StressGauge bpm={visualBPM} isActive={isActive} stableZone={stableZone} />
-              <div key={stableZone} style={{ fontSize: '0.78rem', fontFamily: 'Montserrat, sans-serif', color: `${stressColor}90`, fontStyle: 'italic', animation: 'fadeIn 0.6s ease' }}>
+              <div key={stableZone} style={{ fontSize: '0.78rem', fontFamily: 'Montserrat, sans-serif', color: stressColor, fontStyle: 'italic', animation: 'fadeIn 0.6s ease' }}>
                 {zonePun}
               </div>
               <SessionTimer startTime={startTime} isActive={isActive} />
@@ -515,7 +515,7 @@ export default function App() {
                 style={{
                   fontSize: 'clamp(0.7rem, 1.1vw, 0.85rem)',
                   fontFamily: 'Montserrat, sans-serif',
-                  color: `${stressColor}90`,
+                  color: stressColor,
                   fontStyle: 'italic',
                   animation: 'fadeIn 0.6s ease',
                 }}
