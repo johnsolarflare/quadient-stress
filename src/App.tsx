@@ -471,7 +471,7 @@ export default function App() {
               <BPMDisplay bpm={currentBPM} visualBPM={visualBPM} isActive={isActive} />
             </div>
             {/* Waveform — takes remaining height */}
-            <div style={{ flex: 1, borderRadius: '12px', overflow: 'hidden', minHeight: '100px' }}>
+            <div style={{ flex: 1, borderRadius: '12px', overflow: 'hidden', minHeight: '100px', background: '#000000', boxShadow: '0 2px 16px rgba(0,0,0,0.18)' }}>
               <Waveform bpm={visualBPM} isActive={isActive} />
             </div>
             {/* HR Zone + pun + timer */}
@@ -501,7 +501,7 @@ export default function App() {
               animation: 'fadeIn 0.5s ease',
             }}
           >
-            <div style={{ gridColumn: 1, gridRow: 1, borderRadius: '12px', overflow: 'hidden', height: '100%' }}>
+            <div style={{ gridColumn: 1, gridRow: 1, borderRadius: '12px', overflow: 'hidden', height: '100%', background: '#000000', boxShadow: '0 2px 16px rgba(0,0,0,0.18)' }}>
               <Waveform bpm={visualBPM} isActive={isActive} />
             </div>
             <div style={{ gridColumn: 2, gridRow: 1 }}>
@@ -676,20 +676,12 @@ export default function App() {
             padding: '0.5rem 0',
           }}
         >
-          <svg width="100" height="22" viewBox="0 0 100 22">
-            <text
-              x="0"
-              y="18"
-              fontFamily="Quicksand, sans-serif"
-              fontSize="18"
-              fontWeight="700"
-              fill="#37415160"
-            >
-              quad
-              <tspan fill="#FF420080">i</tspan>
-              ent
-            </text>
-          </svg>
+          <img
+            src="https://paymentsnext.com/wp-content/uploads/2021/03/Quadient-logo.png"
+            alt="Quadient"
+            height="16"
+            style={{ opacity: 0.25, filter: 'grayscale(1)' }}
+          />
           <span
             style={{
               fontSize: '0.6875rem',

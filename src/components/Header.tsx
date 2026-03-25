@@ -43,23 +43,12 @@ export function Header({ connectionState, batteryLevel, dataSource, onLogoDouble
         onClick={onLogoClick}
         style={{ display: 'flex', flexDirection: 'column', gap: '0.1rem', cursor: 'default', userSelect: 'none' }}
       >
-        <svg width="160" height="32" viewBox="0 0 160 32" fill="none">
-          {/* Icon: orange circle with white upward-arrow 'i' mark */}
-          <circle cx="16" cy="16" r="14" fill="#FF4200"/>
-          {/* Arrow (dot of the i) pointing upward */}
-          <polygon points="16,7 20.5,13.5 17.2,13.5 17.2,23 14.8,23 14.8,13.5 11.5,13.5" fill="white"/>
-          {/* quadient wordmark: graphite with orange 'i' */}
-          <text
-            x="38"
-            y="24"
-            fontFamily="Quicksand, sans-serif"
-            fontSize="22"
-            fontWeight="700"
-            fill="#374151"
-          >
-            quad<tspan fill="#FF4200">i</tspan>ent
-          </text>
-        </svg>
+        <img
+          src="https://paymentsnext.com/wp-content/uploads/2021/03/Quadient-logo.png"
+          alt="Quadient"
+          height="28"
+          style={{ display: 'block' }}
+        />
         {isMobile && (
           <span style={{
             fontSize: '0.6rem',

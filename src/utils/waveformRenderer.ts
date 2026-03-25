@@ -113,8 +113,8 @@ export function renderWaveform(
   const zone = getHRZone(state.currentBPM);
   const color = getZoneColor(zone);
 
-  // Background — q-Graphite panel keeps waveform dramatic on the light UI
-  ctx.fillStyle = '#374151';
+  // Background — black for maximum contrast and dramatic ECG on light UI
+  ctx.fillStyle = '#000000';
   ctx.fillRect(0, 0, W, H);
 
   // Very subtle grid
