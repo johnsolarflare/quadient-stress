@@ -21,7 +21,7 @@ export function SessionSummary({ stats }: SessionSummaryProps) {
           border: '1px solid rgba(255, 255, 255, 0.04)',
           textAlign: 'center',
           fontFamily: 'Montserrat, sans-serif',
-          color: '#5C637160',
+          color: '#9CA3AF',
           fontSize: 'clamp(0.75rem, 1.2vw, 0.875rem)',
         }}
       >
@@ -51,7 +51,7 @@ export function SessionSummary({ stats }: SessionSummaryProps) {
           fontSize: 'clamp(0.625rem, 1vw, 0.75rem)',
           fontWeight: 600,
           fontFamily: 'Quicksand, sans-serif',
-          color: '#5C637180',
+          color: '#9CA3AF',
           marginBottom: '0.75rem',
         }}
       >
@@ -81,7 +81,7 @@ export function SessionSummary({ stats }: SessionSummaryProps) {
               style={{
                 fontSize: 'clamp(0.5rem, 0.8vw, 0.6875rem)',
                 fontFamily: 'Montserrat, sans-serif',
-                color: '#5C637180',
+                color: '#9CA3AF',
                 marginTop: '0.125rem',
               }}
             >
