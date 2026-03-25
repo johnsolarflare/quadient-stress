@@ -248,7 +248,8 @@ export default function App() {
   };
 
   const handleEndSession = async () => {
-    await sessionManager.current.endSession();
+    const finalSession = await sessionManager.current.endSession();
+    if (finalSession) setSessionStats(finalSession);
     if (dataSource === 'dummy') {
       dummyService.current.stop();
     }
