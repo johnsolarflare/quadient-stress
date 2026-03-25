@@ -79,8 +79,8 @@ export function OperatorPanel({
     padding: '0.625rem 1rem',
     borderRadius: '8px',
     border: 'none',
-    background: disabled ? '#1F293780' : color,
-    color: disabled ? '#5C637180' : '#ffffff',
+    background: disabled ? '#F3F4F6' : color,
+    color: disabled ? '#9CA3AF' : '#ffffff',
     fontFamily: 'Quicksand, sans-serif',
     fontWeight: 700,
     fontSize: '0.8125rem',
@@ -110,8 +110,8 @@ export function OperatorPanel({
           right: 0,
           bottom: 0,
           width: '320px',
-          background: '#0a0f1a',
-          borderLeft: '1px solid rgba(255, 255, 255, 0.07)',
+          background: '#ffffff',
+          borderLeft: '1px solid rgba(55,65,81,0.12)',
           zIndex: 999,
           padding: '1.5rem',
           overflowY: 'auto',
@@ -128,7 +128,7 @@ export function OperatorPanel({
               fontFamily: 'Quicksand, sans-serif',
               fontWeight: 700,
               fontSize: '1.125rem',
-              color: '#ffffff',
+              color: '#374151',
               margin: 0,
             }}
           >
@@ -139,7 +139,7 @@ export function OperatorPanel({
             style={{
               background: 'none',
               border: 'none',
-              color: '#5C6371',
+              color: '#9CA3AF',
               fontSize: '1.5rem',
               cursor: 'pointer',
               padding: '0.25rem',
@@ -167,7 +167,7 @@ export function OperatorPanel({
             <button
               onClick={() => dataSource !== 'ble' && sessionState === 'idle' && onToggleDataSource()}
               style={{
-                ...btnStyle(dataSource === 'ble' ? '#3860BE' : '#1F2937'),
+                ...btnStyle(dataSource === 'ble' ? '#3860BE' : '#374151'),
                 flex: 1,
                 opacity: dataSource === 'ble' ? 1 : 0.45,
                 outline: dataSource === 'ble' ? '1.5px solid #3860BE80' : 'none',
@@ -178,7 +178,7 @@ export function OperatorPanel({
             <button
               onClick={() => dataSource !== 'dummy' && sessionState === 'idle' && onToggleDataSource()}
               style={{
-                ...btnStyle(dataSource === 'dummy' ? '#FF4200' : '#1F2937'),
+                ...btnStyle(dataSource === 'dummy' ? '#FF4200' : '#374151'),
                 flex: 1,
                 opacity: dataSource === 'dummy' ? 1 : 0.45,
                 outline: dataSource === 'dummy' ? '1.5px solid #FF420080' : 'none',
@@ -307,12 +307,12 @@ export function OperatorPanel({
           </label>
           <div
             style={{
-              background: 'rgba(255, 255, 255, 0.03)',
+              background: '#F9FAFB',
               borderRadius: '8px',
               padding: '0.75rem',
               fontSize: '0.8125rem',
               fontFamily: 'Montserrat, sans-serif',
-              color: '#9CA3AF',
+              color: '#5C6371',
               display: 'flex',
               flexDirection: 'column',
               gap: '0.375rem',
@@ -335,7 +335,7 @@ export function OperatorPanel({
 
         {/* Data Management */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginTop: 'auto' }}>
-          <button onClick={handleExport} style={btnStyle('#1F2937')}>
+          <button onClick={handleExport} style={btnStyle('#374151')}>
             {exportStatus || 'Export Sessions (CSV)'}
           </button>
           <button onClick={handleClearData} style={btnStyle('#1F293780')}>

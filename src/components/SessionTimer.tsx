@@ -50,7 +50,7 @@ export function SessionTimer({ startTime, isActive }: SessionTimerProps) {
           fontFamily: 'Quicksand, sans-serif',
           fontWeight: 600,
           fontSize: 'clamp(1rem, 2vw, 1.5rem)',
-          color: isActive ? '#ffffff' : '#5C6371',
+          color: isActive ? '#374151' : '#9CA3AF',
           fontVariantNumeric: 'tabular-nums',
         }}
       >

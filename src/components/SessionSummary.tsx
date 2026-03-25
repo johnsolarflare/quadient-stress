@@ -17,8 +17,8 @@ export function SessionSummary({ stats }: SessionSummaryProps) {
         style={{
           padding: 'clamp(0.75rem, 1.5vw, 1rem)',
           borderRadius: '12px',
-          background: 'rgba(255, 255, 255, 0.02)',
-          border: '1px solid rgba(255, 255, 255, 0.04)',
+          background: '#ffffff',
+          border: '1px solid rgba(55,65,81,0.1)',
           textAlign: 'center',
           fontFamily: 'Montserrat, sans-serif',
           color: '#9CA3AF',

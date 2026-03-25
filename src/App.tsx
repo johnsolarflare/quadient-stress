@@ -423,8 +423,8 @@ export default function App() {
       style={{
         width: '100vw',
         height: '100vh',
-        backgroundColor: '#111827',
-        color: '#ffffff',
+        backgroundColor: '#F9FAFB',
+        color: '#374151',
         display: 'flex',
         flexDirection: 'column',
         overflow: 'hidden',
@@ -436,7 +436,7 @@ export default function App() {
           style={{
             position: 'absolute',
             inset: 0,
-            backgroundImage: `radial-gradient(ellipse at 50% 30%, ${stressColor}08, transparent 70%)`,
+            backgroundImage: `radial-gradient(ellipse at 50% 30%, ${stressColor}18, transparent 70%)`,
             transition: 'background-image 1s ease',
             pointerEvents: 'none',
           }}
@@ -598,10 +598,10 @@ export default function App() {
                   },
                 ].map(({ label, value }) => (
                   <div key={label} style={{ textAlign: 'center' }}>
-                    <div style={{ fontSize: 'clamp(1.25rem, 2.5vw, 2rem)', fontFamily: 'Quicksand, sans-serif', fontWeight: 700, color: '#ffffff' }}>
+                    <div style={{ fontSize: 'clamp(1.25rem, 2.5vw, 2rem)', fontFamily: 'Quicksand, sans-serif', fontWeight: 700, color: '#374151' }}>
                       {value}
                     </div>
-                    <div style={{ fontSize: 'clamp(0.625rem, 1vw, 0.75rem)', fontFamily: 'Quicksand, sans-serif', fontWeight: 600, color: '#5C637180' }}>
+                    <div style={{ fontSize: 'clamp(0.625rem, 1vw, 0.75rem)', fontFamily: 'Quicksand, sans-serif', fontWeight: 600, color: '#9CA3AF' }}>
                       {label}
                     </div>
                   </div>
@@ -683,10 +683,10 @@ export default function App() {
               fontFamily="Quicksand, sans-serif"
               fontSize="18"
               fontWeight="700"
-              fill="#ffffff40"
+              fill="#37415160"
             >
               quad
-              <tspan fill="#FF420060">i</tspan>
+              <tspan fill="#FF420080">i</tspan>
               ent
             </text>
           </svg>
@@ -695,7 +695,7 @@ export default function App() {
               fontSize: '0.6875rem',
               fontFamily: 'Quicksand, sans-serif',
               fontWeight: 600,
-              color: '#5C637140',
+              color: '#9CA3AF',
             }}
           >
             Make room for the remarkable.

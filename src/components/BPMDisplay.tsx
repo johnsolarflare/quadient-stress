@@ -42,7 +42,7 @@ export function BPMDisplay({ bpm, visualBPM, isActive }: BPMDisplayProps) {
           <circle
             cx="65" cy="65" r={radius}
             fill="none"
-            stroke="rgba(255,255,255,0.06)"
+            stroke="rgba(55,65,81,0.12)"
             strokeWidth="8"
             strokeDasharray={`${circumference * 0.82} ${circumference}`}
             strokeLinecap="round"
@@ -78,7 +78,7 @@ export function BPMDisplay({ bpm, visualBPM, isActive }: BPMDisplayProps) {
           <div
             style={{
               fontSize: '0.875rem',
-              color: isActive && bpm > 0 ? color : '#5C637140',
+              color: isActive && bpm > 0 ? color : '#D1D5DB',
               animation: isActive && bpm > 0 ? `pulse ${pulseDuration}s ease-in-out infinite` : 'none',
               transition: 'color 0.3s ease',
               marginBottom: '0.125rem',
@@ -92,7 +92,7 @@ export function BPMDisplay({ bpm, visualBPM, isActive }: BPMDisplayProps) {
               fontSize: 'clamp(1.75rem, 4vw, 2.75rem)',
               fontWeight: 700,
               fontFamily: 'Quicksand, sans-serif',
-              color: isActive && bpm > 0 ? color : '#5C6371',
+              color: isActive && bpm > 0 ? color : '#9CA3AF',
               lineHeight: 1,
               transition: 'color 0.3s ease',
               fontVariantNumeric: 'tabular-nums',
@@ -154,8 +154,8 @@ export function BPMDisplay({ bpm, visualBPM, isActive }: BPMDisplayProps) {
           style={{
             padding: '0.25rem 0.75rem',
             borderRadius: '999px',
-            background: 'rgba(255,255,255,0.03)',
-            border: '1px solid rgba(255,255,255,0.06)',
+            background: 'rgba(55,65,81,0.05)',
+            border: '1px solid rgba(55,65,81,0.12)',
             fontSize: '0.6875rem',
             fontWeight: 600,
             fontFamily: 'Quicksand, sans-serif',
@@ -175,7 +175,7 @@ export function BPMDisplay({ bpm, visualBPM, isActive }: BPMDisplayProps) {
               width: z <= zone && isActive && bpm > 0 ? '20px' : '8px',
               height: '4px',
               borderRadius: '2px',
-              background: z <= zone && isActive && bpm > 0 ? getZoneColor(z) : 'rgba(255,255,255,0.08)',
+              background: z <= zone && isActive && bpm > 0 ? getZoneColor(z) : 'rgba(55,65,81,0.12)',
               transition: 'all 0.4s ease',
             }}
           />

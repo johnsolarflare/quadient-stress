@@ -24,11 +24,11 @@ export function StatsCards({ minHR, avgHR, maxHR, isActive }: StatsCardsProps) {
         <div
           key={label}
           style={{
-            background: 'rgba(255, 255, 255, 0.03)',
+            background: '#ffffff',
             borderRadius: '12px',
             padding: 'clamp(0.75rem, 1.5vw, 1.25rem)',
             textAlign: 'center',
-            border: '1px solid rgba(255, 255, 255, 0.06)',
+            border: '1px solid rgba(55,65,81,0.1)',
           }}
         >
           <div
@@ -36,7 +36,7 @@ export function StatsCards({ minHR, avgHR, maxHR, isActive }: StatsCardsProps) {
               fontSize: 'clamp(0.625rem, 1vw, 0.75rem)',
               fontWeight: 600,
               fontFamily: 'Quicksand, sans-serif',
-              color: '#5C6371',
+              color: '#9CA3AF',
               marginBottom: '0.25rem',
             }}
           >
@@ -47,7 +47,7 @@ export function StatsCards({ minHR, avgHR, maxHR, isActive }: StatsCardsProps) {
               fontSize: 'clamp(1.5rem, 3.5vw, 2.5rem)',
               fontWeight: 700,
               fontFamily: 'Quicksand, sans-serif',
-              color: isActive && value > 0 ? color : '#5C637180',
+              color: isActive && value > 0 ? color : '#D1D5DB',
               fontVariantNumeric: 'tabular-nums',
               transition: 'color 0.3s ease',
             }}

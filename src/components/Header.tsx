@@ -13,10 +13,10 @@ export function Header({ connectionState, batteryLevel, dataSource, onLogoDouble
   const isDemo = dataSource === 'dummy' || dataSource === undefined;
 
   const statusColors: Record<ConnectionState, string> = {
-    connected: isDemo ? '#05B9F0' : '#05B9F0',
+    connected: '#05B9F0',
     connecting: '#FF4200',
     reconnecting: '#CC3400',
-    disconnected: '#5C6371',
+    disconnected: '#9CA3AF',
   };
 
   const statusLabels: Record<ConnectionState, string> = {
@@ -33,35 +33,39 @@ export function Header({ connectionState, batteryLevel, dataSource, onLogoDouble
         alignItems: 'center',
         justifyContent: 'space-between',
         padding: 'clamp(0.75rem, 1.5vw, 1.25rem) clamp(1rem, 2vw, 2rem)',
+        borderBottom: '1px solid rgba(55,65,81,0.08)',
+        background: '#ffffff',
       }}
     >
-      {/* Logo — double-click (desktop) or tap (mobile) to open operator panel */}
+      {/* Logo — colour version for light background */}
       <div
         onDoubleClick={onLogoDoubleClick}
         onClick={onLogoClick}
         style={{ display: 'flex', flexDirection: 'column', gap: '0.1rem', cursor: 'default', userSelect: 'none' }}
       >
-        <svg width="140" height="32" viewBox="0 0 140 32" fill="none">
+        <svg width="160" height="32" viewBox="0 0 160 32" fill="none">
+          {/* Icon: orange circle with white upward-arrow 'i' mark */}
+          <circle cx="16" cy="16" r="14" fill="#FF4200"/>
+          {/* Arrow (dot of the i) pointing upward */}
+          <polygon points="16,7 20.5,13.5 17.2,13.5 17.2,23 14.8,23 14.8,13.5 11.5,13.5" fill="white"/>
+          {/* quadient wordmark: graphite with orange 'i' */}
           <text
-            x="0"
-            y="26"
+            x="38"
+            y="24"
             fontFamily="Quicksand, sans-serif"
-            fontSize="26"
+            fontSize="22"
             fontWeight="700"
-            fill="white"
+            fill="#374151"
           >
-            quad
-            <tspan fill="#FF4200">i</tspan>
-            ent
+            quad<tspan fill="#FF4200">i</tspan>ent
           </text>
         </svg>
-        {/* On mobile: subtitle under logo */}
         {isMobile && (
           <span style={{
             fontSize: '0.6rem',
             fontFamily: 'Quicksand, sans-serif',
             fontWeight: 600,
-            color: '#5C6371',
+            color: '#9CA3AF',
           }}>
             Stress Test
           </span>
@@ -75,7 +79,7 @@ export function Header({ connectionState, batteryLevel, dataSource, onLogoDouble
             fontSize: 'clamp(0.875rem, 1.5vw, 1.25rem)',
             fontWeight: 700,
             fontFamily: 'Quicksand, sans-serif',
-            color: '#ffffff',
+            color: '#374151',
           }}
         >
           Stress Test
@@ -89,7 +93,7 @@ export function Header({ connectionState, batteryLevel, dataSource, onLogoDouble
             style={{
               fontSize: '0.75rem',
               fontFamily: 'Montserrat, sans-serif',
-              color: batteryLevel < 20 ? '#CC3400' : '#5C6371',
+              color: batteryLevel < 20 ? '#CC3400' : '#9CA3AF',
             }}
           >
             {batteryLevel}%

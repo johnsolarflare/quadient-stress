@@ -113,12 +113,12 @@ export function renderWaveform(
   const zone = getHRZone(state.currentBPM);
   const color = getZoneColor(zone);
 
-  // Background
-  ctx.fillStyle = '#111827';
+  // Background — q-Graphite panel keeps waveform dramatic on the light UI
+  ctx.fillStyle = '#374151';
   ctx.fillRect(0, 0, W, H);
 
   // Very subtle grid
-  ctx.strokeStyle = 'rgba(255,255,255,0.025)';
+  ctx.strokeStyle = 'rgba(255,255,255,0.04)';
   ctx.lineWidth = 0.5;
   const gs = 40 * dpr;
   for (let x = gs; x < W; x += gs) {

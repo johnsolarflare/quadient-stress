@@ -59,7 +59,7 @@ export function StressGauge({ bpm, isActive, stableZone }: StressGaugeProps) {
               borderRadius: '3px',
               background: isActive && z <= displayZone
                 ? getZoneColor(z)
-                : 'rgba(255, 255, 255, 0.06)',
+                : 'rgba(55, 65, 81, 0.12)',
               boxShadow: isActive && z === displayZone
                 ? `0 0 10px ${getZoneColor(z)}80`
                 : 'none',
@@ -86,7 +86,7 @@ export function StressGauge({ bpm, isActive, stableZone }: StressGaugeProps) {
               fontSize: '0.5rem',
               fontFamily: 'Quicksand, sans-serif',
               fontWeight: 600,
-              color: isActive && z <= displayZone ? getZoneColor(z) : '#5C637150',
+              color: isActive && z <= displayZone ? getZoneColor(z) : '#D1D5DB',
               letterSpacing: '0.05em',
               transition: 'color 0.3s ease',
             }}

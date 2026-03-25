@@ -56,7 +56,7 @@ export function RemoteControl() {
       <div
         style={{
           width: '100vw', height: '100vh',
-          backgroundColor: '#111827', color: '#ffffff',
+          backgroundColor: '#F9FAFB', color: '#374151',
           display: 'flex', flexDirection: 'column',
           alignItems: 'center', justifyContent: 'center',
           gap: '1rem', padding: '2rem', boxSizing: 'border-box',
@@ -80,7 +80,7 @@ export function RemoteControl() {
     <div
       style={{
         width: '100vw', height: '100vh',
-        backgroundColor: '#111827', color: '#ffffff',
+        backgroundColor: '#F9FAFB', color: '#374151',
         display: 'flex', flexDirection: 'column',
         alignItems: 'center', justifyContent: 'center',
         gap: '1.25rem', padding: '2rem', boxSizing: 'border-box',
