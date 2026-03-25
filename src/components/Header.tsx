@@ -29,9 +29,9 @@ export function Header({ connectionState, batteryLevel, dataSource, onLogoDouble
   return (
     <header
       style={{
-        display: 'flex',
+        display: 'grid',
+        gridTemplateColumns: '1fr auto 1fr',
         alignItems: 'center',
-        justifyContent: 'space-between',
         padding: 'clamp(0.75rem, 1.5vw, 1.25rem) clamp(1rem, 2vw, 2rem)',
         borderBottom: '1px solid rgba(55,65,81,0.08)',
         background: '#ffffff',
@@ -76,7 +76,7 @@ export function Header({ connectionState, batteryLevel, dataSource, onLogoDouble
       )}
 
       {/* Status */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', justifyContent: 'flex-end' }}>
         {batteryLevel !== null && connectionState === 'connected' && !isDemo && (
           <span
             style={{

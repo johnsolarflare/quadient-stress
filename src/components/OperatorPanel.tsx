@@ -251,7 +251,7 @@ export function OperatorPanel({
             <button
               onClick={onConnect}
               disabled={connectionState === 'connecting' || dataSource === 'dummy'}
-              style={btnStyle('#05B9F0', connectionState === 'connecting' || dataSource === 'dummy')}
+              style={btnStyle('#FF4200', connectionState === 'connecting' || dataSource === 'dummy')}
             >
               {connectionState === 'connecting' ? 'Connecting...' : 'Connect Sensor'}
             </button>
@@ -274,12 +274,12 @@ export function OperatorPanel({
           </label>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
             {sessionState === 'idle' && (
-              <button onClick={onStartSession} style={btnStyle('#05B9F0')}>
+              <button onClick={onStartSession} style={btnStyle('#FF4200')}>
                 Start New Session
               </button>
             )}
             {sessionState === 'active' && (
-              <button onClick={onEndSession} style={btnStyle('#CC3400')}>
+              <button onClick={onEndSession} style={btnStyle('#FF4200')}>
                 End Session
               </button>
             )}
