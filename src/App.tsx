@@ -677,7 +677,7 @@ export default function App() {
           }}
         >
           <img
-            src="https://paymentsnext.com/wp-content/uploads/2021/03/Quadient-logo.png"
+            src="/quadient-logo.png"
             alt="Quadient"
             height="16"
             style={{ opacity: 0.25, filter: 'grayscale(1)' }}

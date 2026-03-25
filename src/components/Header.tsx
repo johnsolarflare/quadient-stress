@@ -44,9 +44,9 @@ export function Header({ connectionState, batteryLevel, dataSource, onLogoDouble
         style={{ display: 'flex', flexDirection: 'column', gap: '0.1rem', cursor: 'default', userSelect: 'none' }}
       >
         <img
-          src="https://paymentsnext.com/wp-content/uploads/2021/03/Quadient-logo.png"
+          src="/quadient-logo.png"
           alt="Quadient"
-          height="28"
+          height="32"
           style={{ display: 'block' }}
         />
         {isMobile && (
