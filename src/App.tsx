@@ -419,6 +419,18 @@ export default function App() {
     [punZone, punVariantIndex],
   );
 
+  // Fade-out → swap text → fade-in to prevent snap-flickering at zone boundaries
+  const [displayedPun, setDisplayedPun] = useState(zonePun);
+  const [punVisible, setPunVisible] = useState(true);
+  useEffect(() => {
+    setPunVisible(false);
+    const t = setTimeout(() => {
+      setDisplayedPun(zonePun);
+      setPunVisible(true);
+    }, 350);
+    return () => clearTimeout(t);
+  }, [zonePun]);
+
   return (
     <div
       style={{
@@ -478,8 +490,8 @@ export default function App() {
             {/* HR Zone + pun + timer */}
             <div style={{ flexShrink: 0, display: 'flex', flexDirection: 'column', gap: '0.2rem' }}>
               <StressGauge bpm={visualBPM} isActive={isActive} stableZone={stableZone} />
-              <div key={stableZone} style={{ fontSize: '0.78rem', fontFamily: 'Montserrat, sans-serif', color: stressColor, fontStyle: 'italic', animation: 'fadeIn 0.6s ease' }}>
-                {zonePun}
+              <div style={{ fontSize: '0.78rem', fontFamily: 'Montserrat, sans-serif', color: stressColor, fontStyle: 'italic', opacity: punVisible ? 1 : 0, transition: 'opacity 0.35s ease' }}>
+                {displayedPun}
               </div>
               <SessionTimer startTime={startTime} isActive={isActive} />
             </div>
@@ -511,16 +523,16 @@ export default function App() {
             <div style={{ gridColumn: 1, gridRow: 2, display: 'flex', flexDirection: 'column', gap: '0.375rem' }}>
               <StressGauge bpm={visualBPM} isActive={isActive} stableZone={stableZone} />
               <div
-                key={stableZone}
                 style={{
                   fontSize: 'clamp(0.7rem, 1.1vw, 0.85rem)',
                   fontFamily: 'Montserrat, sans-serif',
                   color: stressColor,
                   fontStyle: 'italic',
-                  animation: 'fadeIn 0.6s ease',
+                  opacity: punVisible ? 1 : 0,
+                  transition: 'opacity 0.35s ease',
                 }}
               >
-                {zonePun}
+                {displayedPun}
               </div>
             </div>
             <div style={{ gridColumn: 2, gridRow: 2 }}>
