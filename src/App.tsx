@@ -23,45 +23,45 @@ const IS_REMOTE = new URLSearchParams(window.location.search).has('remote');
 initRemoteSync();
 
 const IDLE_PUNS = [
-  'Last one peaked at 157 BPM during the Q3 all-hands.',
-  'The printer is jammed again. Time to find out what you\'re made of.',
-  'Think you\'re calmer than your manager? Prove it.',
-  'Your inbox has 47 unread. Just saying.',
-  'It\'s just a performance review. What\'s the worst that could happen?',
-  'The CEO wants to "quickly align" with you.',
-  'Your 9am became a 3pm. Again.',
+  'Last one peaked at 157 BPM when the photocopier jammed mid-presentation.',
+  'The fax from accounts still hasn\'t arrived. It\'s been three days.',
+  'Think you\'re calmer than your manager? The overhead projector says otherwise.',
+  'Your in-tray has 47 items. The one at the bottom has been there since before anyone can remember.',
+  'It\'s just the annual appraisal. The form is four pages. In triplicate.',
+  'Someone booked the only meeting room. For the whole day. Just for themselves.',
+  'Your 9am became a 3pm. The memo never made it round.',
 ];
 
 const ZONE_PUNS: Record<number, string[]> = {
   1: [
-    'Suspiciously calm. Have you even checked your emails?',
-    'Ice in those veins. Your manager is concerned.',
-    'Either very zen or the Wi-Fi is down.',
-    'This is fine. Everything is fine.',
+    'Suspiciously relaxed. Have you checked your in-tray lately?',
+    'Ice in those veins. Your manager is mildly concerned.',
+    'Either very zen or it\'s not your turn to fix the photocopier today.',
+    'This is fine. The pigeon hole isn\'t overflowing. Yet.',
   ],
   2: [
-    'Getting warmer. Slack is about to ping.',
-    'A meeting just appeared on your calendar.',
-    'Someone mentioned you in a thread.',
-    'The pressure is registering. Slightly.',
+    'Getting warmer. There\'s a note on your desk marked urgent.',
+    'A meeting just appeared in the paper diary.',
+    'Someone\'s left a Post-it on your monitor. It looks serious.',
+    'The pressure is registering. Just like the fax tone.',
   ],
   3: [
-    'Three unread Slacks. Simultaneously.',
-    'Your to-do list just grew by four items.',
-    'That deadline is closer than it looks.',
-    'Is that your phone buzzing? Again?',
+    'Three memos. All marked urgent. All landed at once.',
+    'Your to-do list just grew by four handwritten items.',
+    'That deadline is closer than it looks. The wall calendar doesn\'t lie.',
+    'Is that the fax machine going off again?',
   ],
   4: [
-    'The CEO wants "just a quick word".',
-    'Your 3pm became a 2pm. Starting now.',
-    'Multiple stakeholders. One screen.',
-    'Live presentation. Wrong file open.',
+    'The MD wants "just a quick word" in his office.',
+    'Your 3pm became a 2pm. The receptionist just rang.',
+    'Multiple stakeholders. One overhead projector. No spare bulb.',
+    'Live presentation. Wrong transparency on the projector.',
   ],
   5: [
-    'Production is down. Client is calling. Printer jammed.',
-    'All-hands in five minutes. You\'re presenting.',
-    'Everyone is waiting. Everyone.',
-    'Deep breaths. You got this. Probably.',
+    'Invoice missing. Client calling. Printer jammed. Pigeon hole overflowing.',
+    'All-hands in five. You\'re presenting. The projector bulb just blew.',
+    'Everyone is waiting. The fax still hasn\'t arrived. Everyone.',
+    'Deep breaths. The right file is in the cabinet somewhere. Probably.',
   ],
 };
 
