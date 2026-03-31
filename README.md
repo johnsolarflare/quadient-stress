@@ -19,35 +19,38 @@ Enter on the `?remote` screen — cached to the device after first entry.
 
 ## Git Repositories
 
-Two remotes are configured. **Vercel is connected to `johnsolarflare`** — always push to both.
+Two remotes are configured. Keep both in sync.
 
 | Remote name | Repository | Role |
 |---|---|---|
-| `johnsolarflare` | https://github.com/johnsolarflare/quadient-stress | **Vercel source** — push here to trigger deploys |
-| `origin` | https://github.com/Solarflare-Studio/quadient-stress-dashboard | Studio canonical repo |
+| `origin` | https://github.com/Solarflare-Studio/quadient-stress-dashboard | Studio org repo — canonical source of truth |
+| `johnsolarflare` | https://github.com/johnsolarflare/quadient-stress | Personal account repo — used by Claude Code (cloud) when creating branches and PRs |
 
 ```bash
-# Always push to both
+# Push to both to keep in sync
 git push origin main
 git push johnsolarflare main
 ```
 
-If Vercel does not auto-deploy after pushing, trigger manually:
+### Why two repos?
 
-```bash
-vercel --prod
-```
+Vercel has **no GitHub integration** on this project — `gitSource` is null on all deployments. All deploys are manual via CLI. The `johnsolarflare` repo exists because Claude Code (cloud / claude.ai) operates under the `johnsolarflare` personal GitHub account when it opens PRs and branches (e.g. the Chromecast kiosk PR). Work done locally via Claude Code CLI pushes to both.
 
 ---
 
 ## Deployment
 
-Hosted on **Vercel** under the `john-2408s-projects` team.
+Hosted on **Vercel** under the `john-2408s-projects` personal account. There is **no GitHub auto-deploy** — all deployments are triggered manually via the Vercel CLI.
 
 - **Build command:** `npm run build`
 - **Output directory:** `dist`
 - **Framework:** Vite (React + TypeScript)
 - **SPA routing:** all paths rewrite to `index.html` via `vercel.json`
+
+**To deploy:**
+```bash
+vercel --prod
+```
 
 ### Environment Variables (Vercel Production)
 
