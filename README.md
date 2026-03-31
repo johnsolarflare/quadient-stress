@@ -1,73 +1,168 @@
-# React + TypeScript + Vite
+# Quadient Stress Dashboard
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A real-time heart rate stress test dashboard built for Quadient events. Participants wear a Polar BLE sensor; the dashboard displays live BPM, HR zone, waveform, and session stats. An operator controls the session from a phone via Firebase-backed remote sync.
 
-Currently, two official plugins are available:
+---
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## Live URLs
 
-## React Compiler
+| Purpose | URL |
+|---|---|
+| Main display | https://quadient-stress-dashboard.vercel.app |
+| Chromecast / kiosk | https://quadient-stress-dashboard.vercel.app/?kiosk |
+| Mobile remote control | https://quadient-stress-dashboard.vercel.app/?remote |
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+**Remote control PIN:** `5014`
+Enter on the `?remote` screen — cached to the device after first entry.
 
-## Expanding the ESLint configuration
+---
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+## Git Repositories
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+Two remotes are configured. **Vercel is connected to `johnsolarflare`** — always push to both.
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+| Remote name | Repository | Role |
+|---|---|---|
+| `johnsolarflare` | https://github.com/johnsolarflare/quadient-stress | **Vercel source** — push here to trigger deploys |
+| `origin` | https://github.com/Solarflare-Studio/quadient-stress-dashboard | Studio canonical repo |
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+# Always push to both
+git push origin main
+git push johnsolarflare main
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+If Vercel does not auto-deploy after pushing, trigger manually:
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+vercel --prod
 ```
+
+---
+
+## Deployment
+
+Hosted on **Vercel** under the `john-2408s-projects` team.
+
+- **Build command:** `npm run build`
+- **Output directory:** `dist`
+- **Framework:** Vite (React + TypeScript)
+- **SPA routing:** all paths rewrite to `index.html` via `vercel.json`
+
+### Environment Variables (Vercel Production)
+
+All set under `john-2408s-projects/quadient-stress-dashboard`:
+
+| Variable | Purpose |
+|---|---|
+| `VITE_REMOTE_PIN` | PIN for the mobile remote control (currently `5014`) |
+| `VITE_FIREBASE_API_KEY` | Firebase project API key |
+| `VITE_FIREBASE_AUTH_DOMAIN` | Firebase auth domain |
+| `VITE_FIREBASE_DATABASE_URL` | Firebase Realtime Database URL |
+| `VITE_FIREBASE_PROJECT_ID` | Firebase project ID |
+
+To update the PIN:
+```bash
+vercel env rm VITE_REMOTE_PIN production --yes
+echo "NEW_PIN" | vercel env add VITE_REMOTE_PIN production
+vercel --prod
+```
+
+---
+
+## Local Development
+
+```bash
+npm install
+npm run dev
+```
+
+Create a `.env.local` file with the Firebase vars for full remote sync locally:
+
+```
+VITE_FIREBASE_API_KEY=...
+VITE_FIREBASE_AUTH_DOMAIN=...
+VITE_FIREBASE_DATABASE_URL=...
+VITE_FIREBASE_PROJECT_ID=...
+VITE_REMOTE_PIN=5014
+```
+
+Without Firebase vars, the app runs in local-only mode (remote sync is a no-op).
+
+---
+
+## URL Parameters
+
+| Parameter | Behaviour |
+|---|---|
+| *(none)* | Full dashboard with Operator Panel accessible |
+| `?kiosk` | Clean display mode — Operator Panel hidden, logo clicks disabled. Use for Chromecast. |
+| `?remote` | Mobile remote control UI. Requires PIN entry on first visit; cached to localStorage. |
+
+---
+
+## Architecture
+
+```
+src/
+├── components/
+│   ├── Header.tsx          # Logo, connection status, panel trigger
+│   ├── BPMDisplay.tsx      # Live BPM ring
+│   ├── Waveform.tsx        # Scrolling HR waveform
+│   ├── StressGauge.tsx     # HR zone indicator
+│   ├── StatsCards.tsx      # Min/Avg/Max for current session
+│   ├── SessionTimer.tsx    # Elapsed time
+│   ├── SessionSummary.tsx  # Aggregated all-time stats
+│   ├── OperatorPanel.tsx   # Slide-in panel: connect, start/end session
+│   └── RemoteControl.tsx   # Mobile remote UI (?remote)
+└── services/
+    ├── ble.ts              # Web Bluetooth — Polar sensor (GATT HR service)
+    ├── dummyData.ts        # Simulated HR data for demo mode
+    ├── sessionManager.ts   # Session lifecycle + IndexedDB persistence
+    ├── db.ts               # IndexedDB aggregated stats
+    └── remoteSync.ts       # Firebase Realtime Database sync
+```
+
+### Remote Sync Flow
+
+1. Main dashboard calls `initRemoteSync()` on load and listens for commands via `onRemoteCommand`.
+2. Phone opens `?remote`, enters PIN, and writes commands (`start` / `end` / `reset`) to Firebase under `sessions/<PIN>/command`.
+3. Dashboard picks up the command and acts on it. Commands are deduplicated by skipping the first Firebase snapshot on subscribe (avoids clock-skew false negatives).
+4. Dashboard pushes live status (BPM, session state, data source, connection) to Firebase every ~2s so the remote can display it.
+
+### Polar BLE
+
+- Uses Web Bluetooth GATT Heart Rate Service (`0x180D`)
+- Supported: Chrome and Edge on desktop/Android
+- **Not supported:** iOS Safari, Firefox
+- Connection is initiated from the Operator Panel (click the status indicator in the header to open it)
+
+### Data Sources
+
+| Mode | Description |
+|---|---|
+| Demo | Simulated BPM data — no hardware needed |
+| Polar Sensor | Live BLE data from a paired Polar heart rate device |
+
+Switch source in the Operator Panel before starting a session. Cannot switch mid-session.
+
+---
+
+## Operator Panel Access
+
+| Device | How to open |
+|---|---|
+| Desktop | Double-click the Quadient logo, **or** click the connection status (top-right) |
+| Mobile | Tap the Quadient logo or connection status |
+| Keyboard | Press `Enter` |
+
+Kiosk mode (`?kiosk`) disables all panel access by design.
+
+### Keyboard Shortcuts (main dashboard, non-kiosk)
+
+| Key | Action |
+|---|---|
+| `Enter` | Toggle Operator Panel |
+| `1` | Start session in Demo mode |
+| `2` | Start session with Polar sensor (triggers BLE picker) |
+| `3` | End active session |
