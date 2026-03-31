@@ -6,10 +6,11 @@ interface HeaderProps {
   dataSource?: 'ble' | 'dummy';
   onLogoDoubleClick?: () => void;
   onLogoClick?: () => void;
+  onStatusClick?: () => void;
   isMobile?: boolean;
 }
 
-export function Header({ connectionState, batteryLevel, dataSource, onLogoDoubleClick, onLogoClick, isMobile }: HeaderProps) {
+export function Header({ connectionState, batteryLevel, dataSource, onLogoDoubleClick, onLogoClick, onStatusClick, isMobile }: HeaderProps) {
   const isDemo = dataSource === 'dummy' || dataSource === undefined;
 
   const statusColors: Record<ConnectionState, string> = {
@@ -75,7 +76,10 @@ export function Header({ connectionState, batteryLevel, dataSource, onLogoDouble
       )}
 
       {/* Status */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', justifyContent: 'flex-end' }}>
+      <div
+        onClick={onStatusClick}
+        style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', justifyContent: 'flex-end', cursor: onStatusClick ? 'pointer' : 'default' }}
+      >
         {batteryLevel !== null && connectionState === 'connected' && !isDemo && (
           <span
             style={{

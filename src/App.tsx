@@ -464,6 +464,7 @@ export default function App() {
         dataSource={dataSource}
         onLogoDoubleClick={IS_KIOSK ? undefined : () => setPanelOpen((v) => !v)}
         onLogoClick={IS_KIOSK ? undefined : isMobile ? () => setPanelOpen((v) => !v) : undefined}
+        onStatusClick={IS_KIOSK ? undefined : () => setPanelOpen((v) => !v)}
         isMobile={isMobile}
       />
 
