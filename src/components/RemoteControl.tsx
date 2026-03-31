@@ -1,12 +1,31 @@
 import { useState, useEffect } from 'react';
-import { sendCommand, sendDataSource, onStatus, validatePin } from '../services/remoteSync';
+import { sendCommand, sendDataSource, onStatus, validatePin, setActivePin } from '../services/remoteSync';
 import type { SessionState, ConnectionState, DataSource } from '../types';
 
-// Extract PIN from URL: ?remote=1234
-const urlPin = new URLSearchParams(window.location.search).get('remote');
+const CACHE_KEY = 'remote_pin';
+
+function getCachedPin(): string | null {
+  return localStorage.getItem(CACHE_KEY);
+}
+
+function tryUnlock(pin: string): boolean {
+  if (!validatePin(pin)) return false;
+  localStorage.setItem(CACHE_KEY, pin);
+  setActivePin(pin);
+  return true;
+}
 
 export function RemoteControl() {
-  const pinValid = validatePin(urlPin);
+  const [unlocked, setUnlocked] = useState(() => {
+    const cached = getCachedPin();
+    if (cached && validatePin(cached)) {
+      setActivePin(cached);
+      return true;
+    }
+    return false;
+  });
+  const [pinInput, setPinInput] = useState('');
+  const [pinError, setPinError] = useState(false);
 
   const [sessionState, setSessionState] = useState<SessionState>('idle');
   const [bpm, setBpm] = useState(0);
@@ -15,7 +34,7 @@ export function RemoteControl() {
   const [sending, setSending] = useState(false);
 
   useEffect(() => {
-    if (!pinValid) return;
+    if (!unlocked) return;
     const unsub = onStatus((liveBpm, liveState, liveDs, liveConn) => {
       setBpm(liveBpm);
       setSessionState(liveState as SessionState);
@@ -23,7 +42,7 @@ export function RemoteControl() {
       setConnectionState(liveConn as ConnectionState);
     });
     return unsub;
-  }, [pinValid]);
+  }, [unlocked]);
 
   const dispatch = (cmd: 'start' | 'end' | 'reset') => {
     setSending(true);
@@ -51,24 +70,66 @@ export function RemoteControl() {
   };
 
   // PIN gate
-  if (!pinValid) {
+  if (!unlocked) {
+    const handleSubmit = (e: React.FormEvent) => {
+      e.preventDefault();
+      if (tryUnlock(pinInput.trim())) {
+        setPinError(false);
+        setUnlocked(true);
+      } else {
+        setPinError(true);
+        setPinInput('');
+      }
+    };
     return (
       <div
         style={{
           width: '100vw', height: '100vh',
-          backgroundColor: '#F9FAFB', color: '#374151',
+          backgroundColor: '#F9FAFB',
           display: 'flex', flexDirection: 'column',
           alignItems: 'center', justifyContent: 'center',
-          gap: '1rem', padding: '2rem', boxSizing: 'border-box',
+          gap: '1.25rem', padding: '2rem', boxSizing: 'border-box',
         }}
       >
         <div style={{ fontSize: '2rem' }}>🔒</div>
-        <div style={{ fontFamily: 'Quicksand, sans-serif', fontWeight: 700, fontSize: '1.125rem', color: '#CC3400' }}>
-          Invalid access code
+        <div style={{ fontFamily: 'Quicksand, sans-serif', fontWeight: 700, fontSize: '1.25rem', color: '#FF4200' }}>
+          Remote Control
         </div>
-        <div style={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.875rem', color: '#5C6371', textAlign: 'center' }}>
-          Ask the event organiser for the correct remote control link.
+        <div style={{ fontFamily: 'Quicksand, sans-serif', fontSize: '0.875rem', color: '#5C6371' }}>
+          Enter your access code
         </div>
+        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', width: '100%', maxWidth: '280px' }}>
+          <input
+            type="password"
+            inputMode="numeric"
+            value={pinInput}
+            onChange={e => { setPinInput(e.target.value); setPinError(false); }}
+            placeholder="Access code"
+            autoFocus
+            style={{
+              width: '100%', padding: '0.875rem 1rem', borderRadius: '10px',
+              border: `1.5px solid ${pinError ? '#CC3400' : '#D1D5DB'}`,
+              fontFamily: 'Quicksand, sans-serif', fontWeight: 700,
+              fontSize: '1.25rem', textAlign: 'center', letterSpacing: '0.25em',
+              outline: 'none', boxSizing: 'border-box', background: '#fff', color: '#374151',
+            }}
+          />
+          {pinError && (
+            <div style={{ fontFamily: 'Quicksand, sans-serif', fontSize: '0.8125rem', color: '#CC3400', textAlign: 'center' }}>
+              Incorrect access code
+            </div>
+          )}
+          <button
+            type="submit"
+            style={{
+              width: '100%', padding: '0.875rem', borderRadius: '10px', border: 'none',
+              background: '#FF4200', color: '#fff', fontFamily: 'Quicksand, sans-serif',
+              fontWeight: 700, fontSize: '1rem', cursor: 'pointer',
+            }}
+          >
+            Unlock
+          </button>
+        </form>
       </div>
     );
   }

@@ -14,10 +14,15 @@ export type RemoteCommand = 'start' | 'end' | 'reset';
 export type RemoteDataSource = 'dummy' | 'ble';
 
 const DATABASE_URL = import.meta.env.VITE_FIREBASE_DATABASE_URL as string | undefined;
-const REMOTE_PIN = ((import.meta.env.VITE_REMOTE_PIN as string | undefined) || 'quadient').trim();
+const REMOTE_PIN = ((import.meta.env.VITE_REMOTE_PIN as string | undefined) || '5014').trim();
 
 let db: Database | null = null;
 let lastCommandAt = Date.now();
+let activePin = REMOTE_PIN;
+
+export function setActivePin(pin: string): void {
+  activePin = pin;
+}
 
 /** Validate PIN from URL — returns true if PIN matches or no PIN is configured */
 export function validatePin(pin: string | null): boolean {
@@ -30,7 +35,7 @@ export function getPin(): string {
 
 function sessionRef(path: string) {
   // Use PIN as namespace so only the correct PIN holder can access data
-  return ref(db!, `sessions/${REMOTE_PIN}/${path}`);
+  return ref(db!, `sessions/${activePin}/${path}`);
 }
 
 export function initRemoteSync(): boolean {
