@@ -18,6 +18,8 @@ import { RemoteControl } from './components/RemoteControl';
 
 // Remote control view — phone opens ?remote in URL
 const IS_REMOTE = new URLSearchParams(window.location.search).has('remote');
+// Kiosk/cast display mode — hides operator panel for clean Chromecast casting
+const IS_KIOSK = new URLSearchParams(window.location.search).has('kiosk');
 
 // Initialise Firebase sync (no-op if env vars not set)
 initRemoteSync();
@@ -115,8 +117,9 @@ export default function App() {
     refreshStats();
   }, [refreshStats]);
 
-  // Keyboard shortcut for operator panel (Enter key)
+  // Keyboard shortcut for operator panel (Enter key) — disabled in kiosk mode
   useEffect(() => {
+    if (IS_KIOSK) return;
     const handler = (e: KeyboardEvent) => {
       if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
       if (e.key === 'Enter') {
@@ -460,8 +463,8 @@ export default function App() {
         connectionState={connectionState}
         batteryLevel={batteryLevel}
         dataSource={dataSource}
-        onLogoDoubleClick={() => setPanelOpen((v) => !v)}
-        onLogoClick={isMobile ? () => setPanelOpen((v) => !v) : undefined}
+        onLogoDoubleClick={IS_KIOSK ? undefined : () => setPanelOpen((v) => !v)}
+        onLogoClick={IS_KIOSK ? undefined : isMobile ? () => setPanelOpen((v) => !v) : undefined}
         isMobile={isMobile}
       />
 
@@ -708,24 +711,26 @@ export default function App() {
         </footer>
       </main>
 
-      <OperatorPanel
-        isOpen={panelOpen}
-        onClose={() => setPanelOpen(false)}
-        connectionState={connectionState}
-        sessionState={sessionState}
-        dataSource={dataSource}
-        batteryLevel={batteryLevel}
-        onConnect={handleConnect}
-        onDisconnect={handleDisconnect}
-        onStartSession={handleStartSession}
-        onEndSession={handleEndSession}
-        onResetSession={handleResetSession}
-        onToggleDataSource={handleToggleDataSource}
-        aggregatedStats={aggregatedStats}
-        onStatsRefresh={refreshStats}
-        bleError={bleError}
-        onClearBleError={() => setBleError(null)}
-      />
+      {!IS_KIOSK && (
+        <OperatorPanel
+          isOpen={panelOpen}
+          onClose={() => setPanelOpen(false)}
+          connectionState={connectionState}
+          sessionState={sessionState}
+          dataSource={dataSource}
+          batteryLevel={batteryLevel}
+          onConnect={handleConnect}
+          onDisconnect={handleDisconnect}
+          onStartSession={handleStartSession}
+          onEndSession={handleEndSession}
+          onResetSession={handleResetSession}
+          onToggleDataSource={handleToggleDataSource}
+          aggregatedStats={aggregatedStats}
+          onStatsRefresh={refreshStats}
+          bleError={bleError}
+          onClearBleError={() => setBleError(null)}
+        />
+      )}
     </div>
   );
 }
