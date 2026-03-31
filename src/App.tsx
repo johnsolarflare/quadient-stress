@@ -5,7 +5,7 @@ import { BLEService } from './services/ble';
 import { DummyDataService } from './services/dummyData';
 import { SessionManager } from './services/sessionManager';
 import { getAggregatedStats } from './services/db';
-import { initRemoteSync, onRemoteCommand, onRemoteDataSource, pushStatus, resetLastCommandAt } from './services/remoteSync';
+import { initRemoteSync, onRemoteCommand, onRemoteDataSource, pushStatus } from './services/remoteSync';
 import { Header } from './components/Header';
 import { Waveform } from './components/Waveform';
 import { BPMDisplay } from './components/BPMDisplay';
@@ -311,7 +311,6 @@ export default function App() {
   // On session/connection/source state change, push immediately
   useEffect(() => {
     pushStatus(smoothedBPM, sessionState, dataSource, connectionState);
-    if (sessionState === 'idle') resetLastCommandAt();
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sessionState, dataSource, connectionState]);
 

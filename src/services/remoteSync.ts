@@ -17,7 +17,6 @@ const DATABASE_URL = import.meta.env.VITE_FIREBASE_DATABASE_URL as string | unde
 const REMOTE_PIN = ((import.meta.env.VITE_REMOTE_PIN as string | undefined) || '5014').trim();
 
 let db: Database | null = null;
-let lastCommandAt = Date.now();
 let activePin = REMOTE_PIN;
 
 export function setActivePin(pin: string): void {
@@ -81,11 +80,14 @@ export function onRemoteCommand(
   callback: (command: RemoteCommand) => void,
 ): () => void {
   if (!db) return () => {};
+  let seenCommandAt: number | null = null;
   return onValue(sessionRef('command'), (snapshot) => {
     const data = snapshot.val() as { command: RemoteCommand; commandAt: number } | null;
-    if (!data) return;
-    if (data.commandAt <= lastCommandAt) return;
-    lastCommandAt = data.commandAt;
+    if (!data) { seenCommandAt = null; return; }
+    // First call: record existing value to avoid replaying stale commands
+    if (seenCommandAt === null) { seenCommandAt = data.commandAt; return; }
+    if (data.commandAt <= seenCommandAt) return;
+    seenCommandAt = data.commandAt;
     callback(data.command);
   });
 }
@@ -95,12 +97,13 @@ export function onRemoteDataSource(
   callback: (source: RemoteDataSource) => void,
 ): () => void {
   if (!db) return () => {};
-  let lastRequestedAt = Date.now();
+  let seenRequestedAt: number | null = null;
   return onValue(sessionRef('dataSource'), (snapshot) => {
     const data = snapshot.val() as { source: RemoteDataSource; requestedAt: number } | null;
-    if (!data) return;
-    if (data.requestedAt <= lastRequestedAt) return;
-    lastRequestedAt = data.requestedAt;
+    if (!data) { seenRequestedAt = null; return; }
+    if (seenRequestedAt === null) { seenRequestedAt = data.requestedAt; return; }
+    if (data.requestedAt <= seenRequestedAt) return;
+    seenRequestedAt = data.requestedAt;
     callback(data.source);
   });
 }
@@ -118,6 +121,3 @@ export function onStatus(
   });
 }
 
-export function resetLastCommandAt(): void {
-  lastCommandAt = Date.now();
-}
