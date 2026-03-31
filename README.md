@@ -34,20 +34,24 @@ git push johnsolarflare main
 
 ### Why two repos?
 
-Vercel has **no GitHub integration** on this project — `gitSource` is null on all deployments. All deploys are manual via CLI. The `johnsolarflare` repo exists because Claude Code (cloud / claude.ai) operates under the `johnsolarflare` personal GitHub account when it opens PRs and branches (e.g. the Chromecast kiosk PR). Work done locally via Claude Code CLI pushes to both.
+Vercel is connected to `johnsolarflare/quadient-stress` via GitHub webhook — pushing to `johnsolarflare/main` triggers an automatic production deploy within ~30 seconds. The `Solarflare-Studio` org repo has no Vercel connection (org-level GitHub App installation would be required to add it).
+
+The `johnsolarflare` repo also exists because Claude Code (cloud / claude.ai) operates under the `johnsolarflare` personal GitHub account when creating branches and PRs (e.g. the Chromecast kiosk PR).
+
+**Push to both to keep in sync; auto-deploy fires from `johnsolarflare`.**
 
 ---
 
 ## Deployment
 
-Hosted on **Vercel** under the `john-2408s-projects` personal account. There is **no GitHub auto-deploy** — all deployments are triggered manually via the Vercel CLI.
+Hosted on **Vercel** under the `john-2408s-projects` personal account. **Auto-deploy is active** — pushing to `johnsolarflare/main` triggers a production deploy automatically via GitHub webhook (~30s).
 
 - **Build command:** `npm run build`
 - **Output directory:** `dist`
 - **Framework:** Vite (React + TypeScript)
 - **SPA routing:** all paths rewrite to `index.html` via `vercel.json`
 
-**To deploy:**
+Manual deploy (if needed):
 ```bash
 vercel --prod
 ```
