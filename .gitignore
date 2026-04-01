@@ -30,3 +30,6 @@ dist-ssr
 # Output and deliverables — stored locally / in cloud, not in git
 output/
 deliverables/
+
+# Claude Code session files
+.claude/
