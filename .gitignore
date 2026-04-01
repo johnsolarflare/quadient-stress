@@ -26,3 +26,7 @@ dist-ssr
 .env
 .env.*
 !.env.example
+
+# Output and deliverables — stored locally / in cloud, not in git
+output/
+deliverables/

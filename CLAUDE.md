@@ -47,6 +47,18 @@ vercel deploy --prebuilt --prod --yes  # deploy to Vercel
 
 ---
 
+## Output & Deliverables
+
+| Folder | Git | Contents |
+|--------|-----|----------|
+| `output/screenshots/` | Gitignored | Playwright captures, UI snapshots |
+| `deliverables/docs/` | Gitignored | Client PDFs, HTML overviews, campaign copy |
+
+`deliverables/` is not committed — store in cloud alongside the project and update this path:  
+**Cloud path:** `[TODO: add Dropbox/Drive path once set up]`
+
+---
+
 ## Notes
 
 - Vercel project: `quadient-stress-dashboard` under `john-2408s-projects`
