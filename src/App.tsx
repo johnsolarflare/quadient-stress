@@ -96,6 +96,16 @@ export default function App() {
   const startTimeRef = useRef<number | null>(null);
 
   const [idlePunIndex, setIdlePunIndex] = useState(0);
+  const [idleScreen, setIdleScreen] = useState<'challenger' | 'prize'>('challenger');
+  const [idleTransitioning, setIdleTransitioning] = useState(false);
+  const [fadingOut, setFadingOut] = useState(false);
+  const withFade = useCallback((fn: () => void | Promise<void>) => {
+    setFadingOut(true);
+    window.setTimeout(async () => {
+      await fn();
+      setFadingOut(false);
+    }, 500);
+  }, []);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 900);
 
   useEffect(() => {
@@ -283,9 +293,9 @@ export default function App() {
   // Listen for remote commands from phone controller
   useEffect(() => {
     const unsub = onRemoteCommand((command) => {
-      if (command === 'start' && sessionState === 'idle') handleStartSession();
-      if (command === 'end' && sessionState === 'active') handleEndSession();
-      if (command === 'reset' && sessionState === 'completed') handleResetSession();
+      if (command === 'start' && sessionState === 'idle') withFade(handleStartSession);
+      if (command === 'end' && sessionState === 'active') withFade(handleEndSession);
+      if (command === 'reset' && sessionState === 'completed') withFade(handleResetSession);
     });
     return unsub;
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -324,7 +334,7 @@ export default function App() {
           if (sessionState === 'idle') {
             e.preventDefault();
             setDataSource('dummy');
-            handleStartSession();
+            withFade(handleStartSession);
           }
           break;
         case '2':
@@ -338,7 +348,7 @@ export default function App() {
             bleService.current.onConnectionChange = setConnectionState;
             bleService.current.onBatteryUpdate = setBatteryLevel;
             bleService.current.requestDevice().then(() => {
-              handleStartSession();
+              withFade(handleStartSession);
             }).catch((err) => {
               if (err instanceof Error && err.name === 'NotFoundError') return;
               setBleError(err instanceof Error ? err.message : 'Bluetooth connection failed.');
@@ -349,13 +359,13 @@ export default function App() {
         case '3':
           if (sessionState === 'active') {
             e.preventDefault();
-            handleEndSession();
+            withFade(handleEndSession);
           }
           break;
         case '4':
           if (sessionState === 'completed') {
             e.preventDefault();
-            handleResetSession();
+            withFade(handleResetSession);
           }
           break;
       }
@@ -371,6 +381,33 @@ export default function App() {
       setIdlePunIndex((i) => (i + 1) % IDLE_PUNS.length);
     }, 5000);
     return () => clearInterval(id);
+  }, [sessionState]);
+
+  // Cycle between challenger screen (12s) and prize takeover (8s), with fade-out transition
+  useEffect(() => {
+    if (sessionState !== 'idle') {
+      setIdleScreen('challenger');
+      setIdleTransitioning(false);
+      return;
+    }
+    let timer: number;
+    const switchTo = (next: 'challenger' | 'prize') => {
+      // Phase 1: fade out current screen (600ms)
+      setIdleTransitioning(true);
+      timer = window.setTimeout(() => {
+        // Phase 2: swap screen, fade in
+        setIdleScreen(next);
+        setIdleTransitioning(false);
+        // Schedule next switch
+        const hold = next === 'challenger' ? 12000 : 8000;
+        timer = window.setTimeout(() => {
+          switchTo(next === 'challenger' ? 'prize' : 'challenger');
+        }, hold);
+      }, 600);
+    };
+    // Start: challenger holds for 12s then switches
+    timer = window.setTimeout(() => switchTo('prize'), 12000);
+    return () => clearTimeout(timer);
   }, [sessionState]);
 
   // Compute visual BPM (amplified + operator offset) for all stress visuals
@@ -479,6 +516,7 @@ export default function App() {
           overflowY: 'auto',
         }}
       >
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0, animation: fadingOut ? 'fadeOut 0.5s ease forwards' : undefined }}>
         {isActive ? isMobile ? (
           /* ── ACTIVE STATE: mobile single-column ── */
           <div key="active-mobile" style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '0.5rem', minHeight: 0, animation: 'fadeIn 0.5s ease' }}>
@@ -637,9 +675,54 @@ export default function App() {
               </div>
             )}
           </div>
+        ) : idleScreen === 'prize' ? (
+          /* ── IDLE: PRIZE TAKEOVER ── full-screen dark overlay */
+          <div
+            key="idle-prize"
+            style={{
+              position: 'fixed',
+              inset: 0,
+              zIndex: 40,
+              background: '#111111',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: 'clamp(0.75rem, 2vw, 1.5rem)',
+              animation: (idleTransitioning || fadingOut) ? 'fadeOut 0.5s ease forwards' : 'fadeIn 0.7s ease',
+              textAlign: 'center',
+              padding: '0 clamp(1.5rem, 4vw, 4rem)',
+            }}
+          >
+            <div
+              style={{
+                fontSize: isMobile ? '1rem' : 'clamp(0.9rem, 1.5vw, 1.15rem)',
+                fontFamily: 'Montserrat, sans-serif',
+                fontWeight: 600,
+                color: 'rgba(255,255,255,0.55)',
+                letterSpacing: '0.08em',
+                textTransform: 'uppercase',
+              }}
+            >
+              Complete The Work Day. Stay Calm. Win Prizes.
+            </div>
+            <div
+              style={{
+                fontSize: isMobile ? '2rem' : 'clamp(2.5rem, 6vw, 4.5rem)',
+                fontFamily: 'Quicksand, sans-serif',
+                fontWeight: 700,
+                color: '#FF4200',
+                textShadow: '0 0 60px #FF420080',
+                animation: (idleTransitioning || fadingOut) ? 'fadeOut 0.5s ease forwards' : 'breathe 3s ease-in-out infinite',
+                lineHeight: 1.1,
+              }}
+            >
+              Win a Brand New iPhone 17
+            </div>
+          </div>
         ) : (
-          /* ── IDLE STATE: full-width centred intro ── */
-          <div key="idle" style={{ flex: 1, display: 'flex', flexDirection: 'column', animation: 'fadeIn 0.5s ease' }}>
+          /* ── IDLE: NEXT CHALLENGER ── */
+          <div key="idle-challenger" style={{ flex: 1, display: 'flex', flexDirection: 'column', animation: idleTransitioning ? 'fadeOut 0.6s ease forwards' : 'fadeIn 0.7s ease' }}>
             <div
               style={{
                 flex: 1,
@@ -682,6 +765,7 @@ export default function App() {
             {!isMobile && <SessionSummary stats={aggregatedStats} />}
           </div>
         )}
+        </div>
 
         {/* Footer — hidden on mobile */}
         <footer
@@ -721,9 +805,9 @@ export default function App() {
           batteryLevel={batteryLevel}
           onConnect={handleConnect}
           onDisconnect={handleDisconnect}
-          onStartSession={handleStartSession}
-          onEndSession={handleEndSession}
-          onResetSession={handleResetSession}
+          onStartSession={() => withFade(handleStartSession)}
+          onEndSession={() => withFade(handleEndSession)}
+          onResetSession={() => withFade(handleResetSession)}
           onToggleDataSource={handleToggleDataSource}
           aggregatedStats={aggregatedStats}
           onStatsRefresh={refreshStats}
