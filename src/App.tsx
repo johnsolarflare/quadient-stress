@@ -15,6 +15,7 @@ import { StatsCards } from './components/StatsCards';
 import { SessionSummary } from './components/SessionSummary';
 import { OperatorPanel } from './components/OperatorPanel';
 import { RemoteControl } from './components/RemoteControl';
+import { PrizeTakeover } from './components/PrizeTakeover';
 
 // Remote control view — phone opens ?remote in URL
 const IS_REMOTE = new URLSearchParams(window.location.search).has('remote');
@@ -676,50 +677,12 @@ export default function App() {
             )}
           </div>
         ) : idleScreen === 'prize' ? (
-          /* ── IDLE: PRIZE TAKEOVER ── full-screen dark overlay */
-          <div
+          /* ── IDLE: PRIZE TAKEOVER ── GSAP-animated component */
+          <PrizeTakeover
             key="idle-prize"
-            style={{
-              position: 'fixed',
-              inset: 0,
-              zIndex: 40,
-              background: '#111111',
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: 'clamp(0.75rem, 2vw, 1.5rem)',
-              animation: (idleTransitioning || fadingOut) ? 'fadeOut 0.5s ease forwards' : 'fadeIn 0.7s ease',
-              textAlign: 'center',
-              padding: '0 clamp(1.5rem, 4vw, 4rem)',
-            }}
-          >
-            <div
-              style={{
-                fontSize: isMobile ? '1rem' : 'clamp(0.9rem, 1.5vw, 1.15rem)',
-                fontFamily: 'Montserrat, sans-serif',
-                fontWeight: 600,
-                color: 'rgba(255,255,255,0.55)',
-                letterSpacing: '0.08em',
-                textTransform: 'uppercase',
-              }}
-            >
-              Complete The Work Day. Stay Calm. Win Prizes.
-            </div>
-            <div
-              style={{
-                fontSize: isMobile ? '2rem' : 'clamp(2.5rem, 6vw, 4.5rem)',
-                fontFamily: 'Quicksand, sans-serif',
-                fontWeight: 700,
-                color: '#FF4200',
-                textShadow: '0 0 60px #FF420080',
-                animation: (idleTransitioning || fadingOut) ? 'fadeOut 0.5s ease forwards' : 'breathe 3s ease-in-out infinite',
-                lineHeight: 1.1,
-              }}
-            >
-              Win a Brand New iPhone 17
-            </div>
-          </div>
+            isMobile={isMobile}
+            isExiting={idleTransitioning || fadingOut}
+          />
         ) : (
           /* ── IDLE: NEXT CHALLENGER ── */
           <div key="idle-challenger" style={{ flex: 1, display: 'flex', flexDirection: 'column', animation: idleTransitioning ? 'fadeOut 0.6s ease forwards' : 'fadeIn 0.7s ease' }}>
