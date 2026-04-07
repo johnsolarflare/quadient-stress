@@ -247,13 +247,25 @@ export function OperatorPanel({
                 Disconnect
               </button>
             </div>
+          ) : connectionState === 'connecting' ? (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+              <button disabled style={btnStyle('#05B9F0', true)}>
+                Connecting...
+              </button>
+              <button
+                onClick={() => { onDisconnect(); onConnect(); }}
+                style={btnStyle('#374151')}
+              >
+                Scan for Different Device
+              </button>
+            </div>
           ) : (
             <button
               onClick={onConnect}
-              disabled={connectionState === 'connecting' || dataSource === 'dummy'}
-              style={btnStyle('#05B9F0', connectionState === 'connecting' || dataSource === 'dummy')}
+              disabled={dataSource === 'dummy'}
+              style={btnStyle('#05B9F0', dataSource === 'dummy')}
             >
-              {connectionState === 'connecting' ? 'Connecting...' : 'Connect Sensor'}
+              Connect Sensor
             </button>
           )}
         </div>

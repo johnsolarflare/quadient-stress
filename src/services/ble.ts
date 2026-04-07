@@ -62,7 +62,11 @@ export class BLEService implements DataSourceInterface {
     this.onConnectionChange?.('connecting');
 
     try {
-      this.server = await this.device.gatt.connect();
+      // Timeout after 15s — factory-reset or stale-paired devices can hang indefinitely
+      const connectTimeout = new Promise<never>((_, reject) =>
+        setTimeout(() => reject(new Error('Connection timed out. The device may need to be re-paired.')), 15000)
+      );
+      this.server = await Promise.race([this.device.gatt.connect(), connectTimeout]) as BluetoothRemoteGATTServer;
 
       // Subscribe to Heart Rate
       const hrService = await this.server.getPrimaryService(0x180d);
