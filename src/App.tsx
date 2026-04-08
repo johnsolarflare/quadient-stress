@@ -5,7 +5,7 @@ import { BLEService } from './services/ble';
 import { DummyDataService } from './services/dummyData';
 import { SessionManager } from './services/sessionManager';
 import { getAggregatedStats } from './services/db';
-import { initRemoteSync, onRemoteCommand, onRemoteDataSource, pushStatus } from './services/remoteSync';
+import { initRemoteSync, onRemoteCommand, onRemoteDataSource, onRemoteBpmAdjust, pushStatus } from './services/remoteSync';
 import { Header } from './components/Header';
 import { Waveform } from './components/Waveform';
 import { BPMDisplay } from './components/BPMDisplay';
@@ -311,6 +311,16 @@ export default function App() {
     return unsub;
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sessionState, dataSource]);
+
+  // Listen for BPM offset adjustments from remote (active session only)
+  useEffect(() => {
+    const unsub = onRemoteBpmAdjust((direction) => {
+      if (sessionState !== 'active') return;
+      if (direction === 'up') setBpmOffset((prev) => Math.min(prev + 15, 120));
+      if (direction === 'down') setBpmOffset((prev) => Math.max(prev - 15, -40));
+    });
+    return unsub;
+  }, [sessionState]);
 
   // Push live status to Firebase so remote control can display it (every ~2s)
   useEffect(() => {

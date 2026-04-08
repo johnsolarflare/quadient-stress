@@ -12,6 +12,7 @@ import { getDatabase, ref, set, onValue, type Database } from 'firebase/database
 
 export type RemoteCommand = 'start' | 'end' | 'reset';
 export type RemoteDataSource = 'dummy' | 'ble';
+export type BpmAdjustDirection = 'up' | 'down';
 
 const DATABASE_URL = import.meta.env.VITE_FIREBASE_DATABASE_URL as string | undefined;
 const REMOTE_PIN = ((import.meta.env.VITE_REMOTE_PIN as string | undefined) || '5014').trim();
@@ -105,6 +106,28 @@ export function onRemoteDataSource(
     if (data.requestedAt <= seenRequestedAt) return;
     seenRequestedAt = data.requestedAt;
     callback(data.source);
+  });
+}
+
+/** Remote controller → requests a BPM offset adjustment */
+export function sendBpmAdjust(direction: BpmAdjustDirection): void {
+  if (!db) return;
+  set(sessionRef('bpmAdjust'), { direction, adjustedAt: Date.now() });
+}
+
+/** Host → listens for BPM adjustment requests from remote */
+export function onRemoteBpmAdjust(
+  callback: (direction: BpmAdjustDirection) => void,
+): () => void {
+  if (!db) return () => {};
+  let seenAdjustedAt: number | null = null;
+  return onValue(sessionRef('bpmAdjust'), (snapshot) => {
+    const data = snapshot.val() as { direction: BpmAdjustDirection; adjustedAt: number } | null;
+    if (!data) { seenAdjustedAt = null; return; }
+    if (seenAdjustedAt === null) { seenAdjustedAt = data.adjustedAt; return; }
+    if (data.adjustedAt <= seenAdjustedAt) return;
+    seenAdjustedAt = data.adjustedAt;
+    callback(data.direction);
   });
 }
 

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { sendCommand, sendDataSource, onStatus, validatePin, setActivePin } from '../services/remoteSync';
+import { sendCommand, sendDataSource, sendBpmAdjust, onStatus, validatePin, setActivePin } from '../services/remoteSync';
 import type { SessionState, ConnectionState, DataSource } from '../types';
 
 const CACHE_KEY = 'remote_pin';
@@ -157,14 +157,49 @@ export function RemoteControl() {
         </div>
       </div>
 
-      {/* Live BPM */}
+      {/* Live BPM + manual override */}
       {sessionState === 'active' && (
-        <div style={{ textAlign: 'center' }}>
-          <div style={{ fontSize: '4rem', fontFamily: 'Quicksand, sans-serif', fontWeight: 700, color: '#FF4200', lineHeight: 1 }}>
-            {bpm > 0 ? bpm : '--'}
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem', width: '100%' }}>
+          <div style={{ textAlign: 'center' }}>
+            <div style={{ fontSize: '4rem', fontFamily: 'Quicksand, sans-serif', fontWeight: 700, color: '#FF4200', lineHeight: 1 }}>
+              {bpm > 0 ? bpm : '--'}
+            </div>
+            <div style={{ fontSize: '0.75rem', fontFamily: 'Quicksand, sans-serif', fontWeight: 600, color: '#5C6371', marginTop: '0.25rem' }}>
+              BPM
+            </div>
           </div>
-          <div style={{ fontSize: '0.75rem', fontFamily: 'Quicksand, sans-serif', fontWeight: 600, color: '#5C6371', marginTop: '0.25rem' }}>
-            BPM
+          {/* BPM override controls */}
+          <div style={{ width: '100%', background: '#fff', borderRadius: '12px', padding: '0.875rem 1rem', boxShadow: '0 1px 6px rgba(0,0,0,0.07)' }}>
+            <div style={{ fontSize: '0.625rem', fontFamily: 'Quicksand, sans-serif', fontWeight: 600, color: '#5C6371', marginBottom: '0.625rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+              HR Override
+            </div>
+            <div style={{ display: 'flex', gap: '0.75rem' }}>
+              <button
+                onClick={() => sendBpmAdjust('down')}
+                style={{
+                  flex: 1, padding: '1.125rem', borderRadius: '10px', border: 'none',
+                  background: '#1F2937', color: '#fff',
+                  fontFamily: 'Quicksand, sans-serif', fontWeight: 700,
+                  fontSize: '1.75rem', cursor: 'pointer', lineHeight: 1,
+                }}
+              >
+                −
+              </button>
+              <button
+                onClick={() => sendBpmAdjust('up')}
+                style={{
+                  flex: 1, padding: '1.125rem', borderRadius: '10px', border: 'none',
+                  background: '#FF4200', color: '#fff',
+                  fontFamily: 'Quicksand, sans-serif', fontWeight: 700,
+                  fontSize: '1.75rem', cursor: 'pointer', lineHeight: 1,
+                }}
+              >
+                +
+              </button>
+            </div>
+            <div style={{ fontSize: '0.6875rem', fontFamily: 'Montserrat, sans-serif', color: '#9CA3AF', marginTop: '0.5rem', textAlign: 'center' }}>
+              Adjusts displayed HR by ±15 BPM
+            </div>
           </div>
         </div>
       )}
