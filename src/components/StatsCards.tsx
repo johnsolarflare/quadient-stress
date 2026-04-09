@@ -29,6 +29,10 @@ export function StatsCards({ minHR, avgHR, maxHR, isActive }: StatsCardsProps) {
             padding: 'clamp(0.75rem, 1.5vw, 1.25rem)',
             textAlign: 'center',
             border: '1px solid rgba(55,65,81,0.1)',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
           }}
         >
           <div

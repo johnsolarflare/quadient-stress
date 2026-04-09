@@ -67,13 +67,33 @@ export function getStressLabel(level: StressLevel): string {
   }
 }
 
-// Office stress zones — calibrated for cognitive/psychological stress, not exercise
-export function getHRZone(bpm: number): HRZone {
-  if (bpm < 72)  return 1;  // COMPOSED — resting, unfazed
-  if (bpm < 83)  return 2;  // AWARE — mild pressure registering
-  if (bpm < 95)  return 3;  // TENSE — stress is visible
-  if (bpm < 112) return 4;  // STRESSED — notable elevation
-  return 5;                  // OVERLOADED — maximum cognitive stress
+// Zone thresholds as BPM rise above personal baseline
+export interface ZoneThresholds {
+  z2: number; // rise needed to enter Zone 2
+  z3: number; // rise needed to enter Zone 3
+  z4: number; // rise needed to enter Zone 4
+  z5: number; // rise needed to enter Zone 5
+}
+
+/**
+ * Relative zone calculation — uses each person's detected baseline.
+ * Pass baseline=0 and raw absolute thresholds to fall back to legacy behaviour.
+ */
+export function getHRZone(bpm: number, baseline = 0, thresholds?: ZoneThresholds): HRZone {
+  if (!thresholds) {
+    // Legacy absolute fallback (unused once baseline is detected)
+    if (bpm < 72)  return 1;
+    if (bpm < 83)  return 2;
+    if (bpm < 95)  return 3;
+    if (bpm < 112) return 4;
+    return 5;
+  }
+  const rise = bpm - baseline;
+  if (rise < thresholds.z2) return 1;
+  if (rise < thresholds.z3) return 2;
+  if (rise < thresholds.z4) return 3;
+  if (rise < thresholds.z5) return 4;
+  return 5;
 }
 
 export function getZoneColor(zone: HRZone): string {

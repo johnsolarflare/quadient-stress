@@ -1,6 +1,15 @@
 import { useState, useEffect } from 'react';
+import type React from 'react';
 import type { ConnectionState, SessionState, DataSource, AggregatedStats } from '../types';
 import { exportSessionsCSV, clearAllSessions } from '../services/db';
+
+interface SensitivityPreset {
+  id: string;
+  label: string;
+  description: string;
+  example: string;
+  thresholds: { z2: number; z3: number; z4: number; z5: number };
+}
 
 interface OperatorPanelProps {
   isOpen: boolean;
@@ -19,6 +28,11 @@ interface OperatorPanelProps {
   onStatsRefresh: () => void;
   bleError?: string | null;
   onClearBleError?: () => void;
+  sensitivityPreset: string;
+  onSensitivityChange: React.Dispatch<React.SetStateAction<string>>;
+  sensitivityPresets: readonly SensitivityPreset[];
+  wristbandWorn: boolean;
+  onToggleWristbandWorn: () => void;
 }
 
 export function OperatorPanel({
@@ -38,6 +52,11 @@ export function OperatorPanel({
   onStatsRefresh,
   bleError,
   onClearBleError,
+  sensitivityPreset,
+  onSensitivityChange,
+  sensitivityPresets,
+  wristbandWorn,
+  onToggleWristbandWorn,
 }: OperatorPanelProps) {
   const [exportStatus, setExportStatus] = useState('');
 
@@ -246,6 +265,26 @@ export function OperatorPanel({
               <button onClick={onDisconnect} style={btnStyle('#374151')}>
                 Disconnect
               </button>
+              {/* Wristband worn toggle — only show when BLE connected */}
+              <button
+                onClick={onToggleWristbandWorn}
+                style={{
+                  ...btnStyle(wristbandWorn ? '#05B9F0' : '#374151'),
+                  marginTop: '0.5rem',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '0.5rem',
+                }}
+              >
+                <span style={{ fontSize: '0.75rem' }}>{wristbandWorn ? '●' : '○'}</span>
+                {wristbandWorn ? 'Wristband Worn' : 'Wristband Not Worn'}
+              </button>
+              {!wristbandWorn && (
+                <p style={{ fontSize: '0.6875rem', fontFamily: 'Montserrat, sans-serif', color: '#9CA3AF', margin: '0.25rem 0 0', lineHeight: 1.4 }}>
+                  BLE readings are discarded until marked as worn.
+                </p>
+              )}
             </div>
           ) : connectionState === 'connecting' ? (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
@@ -300,6 +339,58 @@ export function OperatorPanel({
                 Ready for Next Participant
               </button>
             )}
+          </div>
+        </div>
+
+        {/* Sensitivity Presets */}
+        <div>
+          <label
+            style={{
+              fontSize: '0.6875rem',
+              fontFamily: 'Quicksand, sans-serif',
+              fontWeight: 600,
+              color: '#5C6371',
+              display: 'block',
+              marginBottom: '0.25rem',
+            }}
+          >
+            Zone Sensitivity
+          </label>
+          <p style={{ fontSize: '0.6875rem', fontFamily: 'Montserrat, sans-serif', color: '#9CA3AF', margin: '0 0 0.5rem', lineHeight: 1.4 }}>
+            Total BPM rise from baseline to hit max stress. Pick based on how much you expect participants to rise.
+          </p>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.375rem' }}>
+            {sensitivityPresets.map((preset) => {
+              const isActive = sensitivityPreset === preset.id;
+              return (
+                <button
+                  key={preset.id}
+                  onClick={() => onSensitivityChange(preset.id)}
+                  style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    padding: '0.5rem 0.75rem',
+                    borderRadius: '8px',
+                    border: isActive ? '1.5px solid #FF4200' : '1.5px solid rgba(55,65,81,0.15)',
+                    background: isActive ? 'rgba(255,66,0,0.06)' : '#F9FAFB',
+                    cursor: 'pointer',
+                    transition: 'all 0.15s ease',
+                    textAlign: 'left',
+                    width: '100%',
+                  }}
+                >
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.15rem' }}>
+                    <span style={{ fontFamily: 'Quicksand, sans-serif', fontWeight: 700, fontSize: '0.8125rem', color: isActive ? '#FF4200' : '#374151' }}>
+                      {preset.label}
+                    </span>
+                    <span style={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.6rem', color: isActive ? '#FF420099' : '#9CA3AF', lineHeight: 1.3 }}>
+                      {preset.example}
+                    </span>
+                  </div>
+                </button>
+              );
+            })}
           </div>
         </div>
 

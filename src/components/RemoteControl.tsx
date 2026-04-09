@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { sendCommand, sendDataSource, sendBpmAdjust, onStatus, validatePin, setActivePin } from '../services/remoteSync';
+import { sendCommand, sendDataSource, sendBpmAdjust, onStatus, validatePin, setActivePin, isRemoteSyncEnabled } from '../services/remoteSync';
 import type { SessionState, ConnectionState, DataSource } from '../types';
 
 const CACHE_KEY = 'remote_pin';
@@ -134,6 +134,33 @@ export function RemoteControl() {
     );
   }
 
+  // Firebase not configured — env vars missing on this deployment
+  if (!isRemoteSyncEnabled()) {
+    return (
+      <div
+        style={{
+          width: '100vw', height: '100vh',
+          backgroundColor: '#F9FAFB',
+          display: 'flex', flexDirection: 'column',
+          alignItems: 'center', justifyContent: 'center',
+          gap: '1rem', padding: '2rem', boxSizing: 'border-box',
+          textAlign: 'center',
+        }}
+      >
+        <div style={{ fontSize: '2rem' }}>⚠️</div>
+        <div style={{ fontFamily: 'Quicksand, sans-serif', fontWeight: 700, fontSize: '1.125rem', color: '#FF4200' }}>
+          Remote Control Unavailable
+        </div>
+        <div style={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.875rem', color: '#5C6371', maxWidth: '320px', lineHeight: 1.6 }}>
+          Firebase is not configured on this deployment. To fix this, go to your Vercel project settings and ensure the Firebase environment variables (VITE_FIREBASE_*) are enabled for <strong>Preview</strong> environments, not just Production.
+        </div>
+        <div style={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.75rem', color: '#9CA3AF', maxWidth: '320px', lineHeight: 1.5 }}>
+          Settings → Environment Variables → edit each VITE_FIREBASE_* var → tick "Preview" checkbox → Save.
+        </div>
+      </div>
+    );
+  }
+
   const connColor = connectionState === 'connected' ? '#05B9F0' : connectionState === 'connecting' ? '#FF4200' : '#5C6371';
   const connLabel = connectionState === 'connected' ? 'Connected' : connectionState === 'connecting' ? 'Connecting…' : 'Not connected';
 
@@ -198,7 +225,7 @@ export function RemoteControl() {
               </button>
             </div>
             <div style={{ fontSize: '0.6875rem', fontFamily: 'Montserrat, sans-serif', color: '#9CA3AF', marginTop: '0.5rem', textAlign: 'center' }}>
-              Adjusts displayed HR by ±15 BPM
+              Adjusts displayed HR (step scales with zone sensitivity)
             </div>
           </div>
         </div>

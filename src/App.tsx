@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
-import { getHRZone, getZoneColor, computeVisualBPM } from './types';
-import type { ConnectionState, SessionState, DataSource, HRReading, AggregatedStats, SessionData, HRZone } from './types';
+import { getHRZone, getZoneColor, getZoneLabel, computeVisualBPM } from './types';
+import type { ConnectionState, SessionState, DataSource, HRReading, AggregatedStats, SessionData, HRZone, ZoneThresholds } from './types';
 import { BLEService } from './services/ble';
 import { DummyDataService } from './services/dummyData';
 import { SessionManager } from './services/sessionManager';
@@ -86,13 +86,54 @@ export default function App() {
   const [startTime, setStartTime] = useState<number | null>(null);
   const [bleError, setBleError] = useState<string | null>(null);
 
-  // Visual sensitivity & operator override
-  const [sensitivityMultiplier] = useState(1.0);
+  // Zone range presets — thresholds are BPM rise above personal baseline
+  // Tighter = person hits high zones with a smaller heart rate increase
+  // Presets expressed as total rise from baseline to Zone 5.
+  // Zones are distributed proportionally across that range.
+  // e.g. Tight: someone at 65 BPM hits Zone 5 at ~100 BPM.
+  const SENSITIVITY_PRESETS: { id: string; label: string; description: string; example: string; thresholds: ZoneThresholds }[] = [
+    {
+      id: 'micro',
+      label: 'Micro  (+20 BPM)',
+      description: 'Max stress at just +20 BPM above baseline',
+      example: 'e.g. 65 → 85 BPM = Zone 5',
+      thresholds: { z2: 4, z3: 8, z4: 14, z5: 20 },
+    },
+    {
+      id: 'tight',
+      label: 'Tight  (+35 BPM)',
+      description: 'Max stress at +35 BPM above baseline',
+      example: 'e.g. 65 → 100 BPM = Zone 5',
+      thresholds: { z2: 7, z3: 14, z4: 23, z5: 35 },
+    },
+    {
+      id: 'medium',
+      label: 'Medium  (+50 BPM)',
+      description: 'Max stress at +50 BPM above baseline',
+      example: 'e.g. 65 → 115 BPM = Zone 5',
+      thresholds: { z2: 10, z3: 20, z4: 33, z5: 50 },
+    },
+    {
+      id: 'wide',
+      label: 'Wide  (+70 BPM)',
+      description: 'Max stress at +70 BPM above baseline',
+      example: 'e.g. 65 → 135 BPM = Zone 5',
+      thresholds: { z2: 14, z3: 28, z4: 46, z5: 70 },
+    },
+  ];
+  const [sensitivityPreset, setSensitivityPreset] = useState<string>('tight');
+  const activeThresholds = SENSITIVITY_PRESETS.find(p => p.id === sensitivityPreset)!.thresholds;
+  const sensitivityMultiplier = 1.0; // BPM display is always raw — no amplification
   const [baselineHR, setBaselineHR] = useState(70);
   const [baselineDetected, setBaselineDetected] = useState(false);
   const baselineReadings = useRef<number[]>([]);
   const [bpmOffset, setBpmOffset] = useState(0);
+  const [wristbandWorn, setWristbandWorn] = useState(false);
   const bpmOffsetRef = useRef(0);
+  const activeThresholdsRef = useRef(activeThresholds);
+  const decayIntervalRef = useRef<number | null>(null);
+  const wristbandWornRef = useRef(false);
+  const dataSourceRef = useRef<DataSource>('dummy');
   const baselineHRRef = useRef(70);
   const startTimeRef = useRef<number | null>(null);
 
@@ -142,41 +183,83 @@ export default function App() {
     return () => window.removeEventListener('keydown', handler);
   }, []);
 
+  // Decay the BPM offset back toward 0 at 1 BPM per 2 seconds after a manual adjustment.
+  // Clears itself once offset reaches 0.
+  const startOffsetDecay = useCallback(() => {
+    if (decayIntervalRef.current) clearInterval(decayIntervalRef.current);
+    decayIntervalRef.current = window.setInterval(() => {
+      setBpmOffset((prev) => {
+        if (prev === 0) {
+          clearInterval(decayIntervalRef.current!);
+          decayIntervalRef.current = null;
+          return 0;
+        }
+        return prev > 0 ? prev - 1 : prev + 1;
+      });
+    }, 2000);
+  }, []);
+
   // Secret operator override keys (W/S) for BPM offset
+  // Step size scales with active sensitivity preset (one zone boundary per press),
+  // capped at ±z5 so the override stays within the chosen range.
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
       if (sessionState !== 'active') return;
 
+      const { z2: step, z5: max } = activeThresholdsRef.current;
       switch (e.key) {
         case 'w':
         case 'W':
           e.preventDefault();
-          setBpmOffset((prev) => Math.min(prev + 15, 120));
+          setBpmOffset((prev) => Math.min(prev + step, max));
+          startOffsetDecay();
           break;
         case 's':
         case 'S':
           e.preventDefault();
-          setBpmOffset((prev) => Math.max(prev - 15, -40));
+          setBpmOffset((prev) => Math.max(prev - step, -max));
+          startOffsetDecay();
           break;
       }
     };
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
-  }, [sessionState]);
+  }, [sessionState, startOffsetDecay]);
 
-  // Offset holds until operator manually adjusts — no auto-decay
+  // Offset decays back toward 0 at 1 BPM per 2s after each manual adjustment
 
   useEffect(() => { bpmOffsetRef.current = bpmOffset; }, [bpmOffset]);
   useEffect(() => { baselineHRRef.current = baselineHR; }, [baselineHR]);
+  useEffect(() => { activeThresholdsRef.current = activeThresholds; }, [activeThresholds]);
+  useEffect(() => { wristbandWornRef.current = wristbandWorn; }, [wristbandWorn]);
+  useEffect(() => { dataSourceRef.current = dataSource; }, [dataSource]);
 
   useEffect(() => {
     sessionManager.current.onStateChange = (state) => setSessionState(state);
     sessionManager.current.onStatsUpdate = (session) => setSessionStats(session);
   }, []);
 
+  // Stale-reading watchdog: if no valid reading arrives within 3s, clear BPM
+  const staleTimerRef = useRef<number | null>(null);
+  const clearBpmOnStale = useCallback(() => {
+    setCurrentBPM(0);
+    setSmoothedBPM(0);
+    bpmHistoryRef.current = [];
+  }, []);
+
   const handleReading = useCallback((reading: HRReading) => {
+    // Ignore zero-BPM readings (belt removed, no signal)
+    if (reading.bpm === 0) return;
+    // Discard BLE readings when the wristband is not marked as worn —
+    // prevents idle/ambient sensor noise showing as a real heartbeat
+    if (dataSourceRef.current === 'ble' && !wristbandWornRef.current) return;
+
     setCurrentBPM(reading.bpm);
+
+    // Reset stale watchdog on every valid reading
+    if (staleTimerRef.current) clearTimeout(staleTimerRef.current);
+    staleTimerRef.current = window.setTimeout(clearBpmOnStale, 3000);
 
     // Rolling 4-reading average (~1s at 250ms interval) for stable display
     bpmHistoryRef.current.push(reading.bpm);
@@ -269,6 +352,7 @@ export default function App() {
     }
     setSessionState('completed');
     setBpmOffset(0);
+    if (decayIntervalRef.current) { clearInterval(decayIntervalRef.current); decayIntervalRef.current = null; }
     await refreshStats();
   };
 
@@ -284,6 +368,9 @@ export default function App() {
     setBpmOffset(0);
     setBaselineDetected(false);
     baselineReadings.current = [];
+    setWristbandWorn(false);
+    if (staleTimerRef.current) { clearTimeout(staleTimerRef.current); staleTimerRef.current = null; }
+    if (decayIntervalRef.current) { clearInterval(decayIntervalRef.current); decayIntervalRef.current = null; }
   };
 
   const handleToggleDataSource = () => {
@@ -313,14 +400,16 @@ export default function App() {
   }, [sessionState, dataSource]);
 
   // Listen for BPM offset adjustments from remote (active session only)
+  // Uses same sensitivity-scaled step as the W/S keyboard shortcut
   useEffect(() => {
     const unsub = onRemoteBpmAdjust((direction) => {
       if (sessionState !== 'active') return;
-      if (direction === 'up') setBpmOffset((prev) => Math.min(prev + 15, 120));
-      if (direction === 'down') setBpmOffset((prev) => Math.max(prev - 15, -40));
+      const { z2: step, z5: max } = activeThresholdsRef.current;
+      if (direction === 'up') { setBpmOffset((prev) => Math.min(prev + step, max)); startOffsetDecay(); }
+      if (direction === 'down') { setBpmOffset((prev) => Math.max(prev - step, -max)); startOffsetDecay(); }
     });
     return unsub;
-  }, [sessionState]);
+  }, [sessionState, startOffsetDecay]);
 
   // Push live status to Firebase so remote control can display it (every ~2s)
   useEffect(() => {
@@ -421,10 +510,36 @@ export default function App() {
     return () => clearTimeout(timer);
   }, [sessionState]);
 
+  // Dominant zone for results screen — computed from session readings by time spent
+  const dominantZoneResult = useMemo(() => {
+    if (!sessionStats || sessionStats.readings.length < 2) return null;
+    const readings = sessionStats.readings;
+    const zoneDuration: Record<number, number> = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
+    for (let i = 1; i < readings.length; i++) {
+      const interval = readings[i].timestamp - readings[i - 1].timestamp;
+      const z = getHRZone(readings[i - 1].bpm, baselineHR, activeThresholds);
+      zoneDuration[z] += interval;
+    }
+    const dominant = (Object.entries(zoneDuration).sort((a, b) => b[1] - a[1])[0][0]) as unknown as HRZone;
+    return Number(dominant) as HRZone;
+  }, [sessionStats]);
+
+  const ZONE_RESULTS_MESSAGES: Record<number, string> = {
+    1: 'You kept your cool throughout. The in-tray didn\'t stand a chance.',
+    2: 'You stayed aware but in control — pressure noted, composure kept.',
+    3: 'You felt the heat. Every memo landed. You handled it.',
+    4: 'Things got intense — the deadlines were closing in and you felt every one.',
+    5: 'Full overload. The projector bulb blew and you didn\'t flinch.',
+  };
+
   // Compute visual BPM (amplified + operator offset) for all stress visuals
   // Uses smoothed BPM so display/zone/waveform don't jitter with per-reading noise
+  // visualBPM: raw BPM + operator offset only — no amplification, display stays honest
   const visualBPM = computeVisualBPM(smoothedBPM, baselineHR, sensitivityMultiplier, bpmOffset);
-  const zone: HRZone = getHRZone(visualBPM);
+  // Zone is relative to personal baseline + active range preset
+  const zone: HRZone = baselineDetected
+    ? getHRZone(smoothedBPM + bpmOffset, baselineHR, activeThresholds)
+    : getHRZone(visualBPM);
   const stressColor = getZoneColor(zone);
   const isActive = sessionState === 'active';
 
@@ -612,7 +727,7 @@ export default function App() {
                 flexDirection: 'column',
                 alignItems: 'center',
                 justifyContent: 'center',
-                gap: 'clamp(0.75rem, 2vw, 1.5rem)',
+                gap: 'clamp(1.25rem, 3vw, 2.5rem)',
               }}
             >
               <div
@@ -625,6 +740,57 @@ export default function App() {
               >
                 Session Complete
               </div>
+
+              {dominantZoneResult && (
+                <div
+                  style={{
+                    width: 'clamp(260px, 50vw, 420px)',
+                    borderRadius: '12px',
+                    background: '#fff',
+                    boxShadow: '0 2px 16px rgba(0,0,0,0.07)',
+                    borderTop: `4px solid ${getZoneColor(dominantZoneResult)}`,
+                    padding: 'clamp(1rem, 2vw, 1.5rem) clamp(1.25rem, 2.5vw, 2rem)',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '0.5rem',
+                  }}
+                >
+                  <div
+                    style={{
+                      fontSize: '0.65rem',
+                      fontFamily: 'Quicksand, sans-serif',
+                      fontWeight: 700,
+                      letterSpacing: '0.12em',
+                      color: '#9CA3AF',
+                      textTransform: 'uppercase',
+                    }}
+                  >
+                    Your dominant zone
+                  </div>
+                  <div
+                    style={{
+                      fontSize: 'clamp(1.1rem, 2.2vw, 1.5rem)',
+                      fontFamily: 'Quicksand, sans-serif',
+                      fontWeight: 700,
+                      color: getZoneColor(dominantZoneResult),
+                      lineHeight: 1.1,
+                    }}
+                  >
+                    Zone {dominantZoneResult} — {getZoneLabel(dominantZoneResult)}
+                  </div>
+                  <div
+                    style={{
+                      fontSize: 'clamp(0.75rem, 1.1vw, 0.85rem)',
+                      fontFamily: 'Montserrat, sans-serif',
+                      color: '#5C6371',
+                      lineHeight: 1.5,
+                    }}
+                  >
+                    {ZONE_RESULTS_MESSAGES[dominantZoneResult]}
+                  </div>
+                </div>
+              )}
+
               <div style={{ textAlign: 'center' }}>
                 <div
                   style={{
@@ -649,7 +815,7 @@ export default function App() {
                   Peak BPM
                 </div>
               </div>
-              <div style={{ display: 'flex', gap: 'clamp(1.5rem, 4vw, 3rem)', justifyContent: 'center' }}>
+              <div style={{ display: 'flex', gap: 'clamp(2.5rem, 6vw, 5rem)', justifyContent: 'center' }}>
                 {[
                   { label: 'Avg BPM', value: sessionStats?.avgHR ?? '--' },
                   { label: 'Min BPM', value: sessionStats?.minHR ?? '--' },
@@ -673,18 +839,6 @@ export default function App() {
                 ))}
               </div>
             </div>
-            {/* Full-width bottom row: stat cards + session summary — desktop only */}
-            {!isMobile && (
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr clamp(160px, 16vw, 210px)', gap: 'clamp(0.75rem, 1.5vw, 1.25rem)' }}>
-                <StatsCards
-                  minHR={sessionStats?.minHR ?? 0}
-                  avgHR={sessionStats?.avgHR ?? 0}
-                  maxHR={sessionStats?.maxHR ?? 0}
-                  isActive={true}
-                />
-                <SessionSummary stats={aggregatedStats} />
-              </div>
-            )}
           </div>
         ) : idleScreen === 'prize' ? (
           /* ── IDLE: PRIZE TAKEOVER ── GSAP-animated component */
@@ -786,6 +940,11 @@ export default function App() {
           onStatsRefresh={refreshStats}
           bleError={bleError}
           onClearBleError={() => setBleError(null)}
+          sensitivityPreset={sensitivityPreset}
+          onSensitivityChange={setSensitivityPreset}
+          sensitivityPresets={SENSITIVITY_PRESETS}
+          wristbandWorn={wristbandWorn}
+          onToggleWristbandWorn={() => setWristbandWorn((v) => !v)}
         />
       )}
     </div>

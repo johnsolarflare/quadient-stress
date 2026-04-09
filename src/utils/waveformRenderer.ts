@@ -31,8 +31,9 @@ export function addDataPoints(state: WaveformState, bpm: number, deltaMs: number
   state.currentBPM = bpm;
   const effectiveBPM = bpm > 0 ? bpm : 70;
 
-  // Fixed scroll: 90 pts/sec → one full canvas width in ~3.3s
-  const SCROLL_PPS = 90;
+  // Scroll speed scales with BPM: faster heart = faster line
+  // At 60 BPM → 90 pts/sec, at 120 BPM → 150 pts/sec, at 180 BPM → 210 pts/sec
+  const SCROLL_PPS = Math.round(Math.min(220, Math.max(60, effectiveBPM * 1.5)));
   const pointsToAdd = Math.round((SCROLL_PPS * deltaMs) / 1000);
 
   const beatsPerSec = effectiveBPM / 60;
