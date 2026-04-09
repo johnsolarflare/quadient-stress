@@ -556,7 +556,7 @@ export default function App() {
           <div key="active-mobile" style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '0.5rem', minHeight: 0, animation: 'fadeIn 0.5s ease' }}>
             {/* BPM ring — centred */}
             <div style={{ display: 'flex', justifyContent: 'center', flexShrink: 0 }}>
-              <BPMDisplay bpm={currentBPM} visualBPM={visualBPM} isActive={isActive} />
+              <BPMDisplay bpm={smoothedBPM} visualBPM={visualBPM} zone={stableZone} isActive={isActive} />
             </div>
             {/* Waveform — takes remaining height */}
             <div style={{ flex: 1, borderRadius: '12px', overflow: 'hidden', minHeight: '100px', background: '#000000', boxShadow: '0 2px 16px rgba(0,0,0,0.18)' }}>
@@ -593,7 +593,7 @@ export default function App() {
               <Waveform bpm={visualBPM} isActive={isActive} />
             </div>
             <div style={{ gridColumn: 2, gridRow: 1 }}>
-              <BPMDisplay bpm={currentBPM} visualBPM={visualBPM} isActive={isActive} />
+              <BPMDisplay bpm={smoothedBPM} visualBPM={visualBPM} zone={stableZone} isActive={isActive} />
             </div>
             <div style={{ gridColumn: 1, gridRow: 2, display: 'flex', flexDirection: 'column', gap: '0.375rem' }}>
               <StressGauge bpm={visualBPM} isActive={isActive} stableZone={stableZone} />
