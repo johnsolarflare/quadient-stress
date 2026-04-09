@@ -282,7 +282,7 @@ export function OperatorPanel({
               </button>
               {!wristbandWorn && (
                 <p style={{ fontSize: '0.6875rem', fontFamily: 'Montserrat, sans-serif', color: '#9CA3AF', margin: '0.25rem 0 0', lineHeight: 1.4 }}>
-                  BLE readings are discarded until marked as worn.
+                  Readings paused — toggle on when participant puts it on.
                 </p>
               )}
             </div>

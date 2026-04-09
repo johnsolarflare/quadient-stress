@@ -128,7 +128,7 @@ export default function App() {
   const [baselineDetected, setBaselineDetected] = useState(false);
   const baselineReadings = useRef<number[]>([]);
   const [bpmOffset, setBpmOffset] = useState(0);
-  const [wristbandWorn, setWristbandWorn] = useState(false);
+  const [wristbandWorn, setWristbandWorn] = useState(true);
   const bpmOffsetRef = useRef(0);
   const activeThresholdsRef = useRef(activeThresholds);
   const decayIntervalRef = useRef<number | null>(null);
@@ -368,7 +368,7 @@ export default function App() {
     setBpmOffset(0);
     setBaselineDetected(false);
     baselineReadings.current = [];
-    setWristbandWorn(false);
+    setWristbandWorn(true);
     if (staleTimerRef.current) { clearTimeout(staleTimerRef.current); staleTimerRef.current = null; }
     if (decayIntervalRef.current) { clearInterval(decayIntervalRef.current); decayIntervalRef.current = null; }
   };
