@@ -443,7 +443,6 @@ export default function App() {
   // Uses smoothed BPM so display/zone/waveform don't jitter with per-reading noise
   const visualBPM = computeVisualBPM(smoothedBPM, baselineHR, sensitivityMultiplier, bpmOffset);
   const zone: HRZone = getHRZone(visualBPM);
-  const stressColor = getZoneColor(zone);
   const isActive = sessionState === 'active';
 
   // Fast zone debounce (500ms) for the gauge — reacts quickly to real changes
@@ -459,6 +458,10 @@ export default function App() {
       if (stableZoneTimerRef.current) clearTimeout(stableZoneTimerRef.current);
     };
   }, [zone]);
+
+  // Single color source for all active visuals — keyed to stableZone so
+  // waveform, ring, gauge, pun text, and background all change together
+  const stressColor = getZoneColor(stableZone);
 
   // Slow zone debounce (10s) for puns — prevents flip-flopping at zone boundaries
   const punZoneTimerRef = useRef<number | null>(null);
@@ -555,7 +558,7 @@ export default function App() {
             </div>
             {/* Waveform — takes remaining height */}
             <div style={{ flex: 1, borderRadius: '12px', overflow: 'hidden', minHeight: '100px', background: '#000000', boxShadow: '0 2px 16px rgba(0,0,0,0.18)' }}>
-              <Waveform bpm={visualBPM} isActive={isActive} />
+              <Waveform bpm={visualBPM} color={stressColor} isActive={isActive} />
             </div>
             {/* HR Zone + pun + timer */}
             <div style={{ flexShrink: 0, display: 'flex', flexDirection: 'column', gap: '0.2rem' }}>
@@ -585,7 +588,7 @@ export default function App() {
             }}
           >
             <div style={{ gridColumn: 1, gridRow: 1, borderRadius: '12px', overflow: 'hidden', height: '100%', background: '#000000', boxShadow: '0 2px 16px rgba(0,0,0,0.18)' }}>
-              <Waveform bpm={visualBPM} isActive={isActive} />
+              <Waveform bpm={visualBPM} color={stressColor} isActive={isActive} />
             </div>
             <div style={{ gridColumn: 2, gridRow: 1 }}>
               <BPMDisplay bpm={smoothedBPM} visualBPM={visualBPM} zone={stableZone} isActive={isActive} />

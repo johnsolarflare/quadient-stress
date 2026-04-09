@@ -4,18 +4,21 @@ import type { WaveformState } from '../utils/waveformRenderer';
 
 interface WaveformProps {
   bpm: number;
+  color: string;
   isActive: boolean;
 }
 
-export function Waveform({ bpm, isActive }: WaveformProps) {
+export function Waveform({ bpm, color, isActive }: WaveformProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const stateRef = useRef<WaveformState>(createWaveformState(300));
   const animFrameRef = useRef<number>(0);
   const lastTimestampRef = useRef<number>(0);
   const bpmRef = useRef(bpm);
+  const colorRef = useRef(color);
 
-  // Keep bpmRef in sync so the animation loop always sees the latest value
+  // Keep refs in sync so the animation loop always sees the latest values
   useEffect(() => { bpmRef.current = bpm; }, [bpm]);
+  useEffect(() => { colorRef.current = color; }, [color]);
 
   const animate = useCallback((timestamp: number) => {
     const canvas = canvasRef.current;
@@ -38,7 +41,7 @@ export function Waveform({ bpm, isActive }: WaveformProps) {
       canvas.height = Math.round(rect.height * dpr);
     }
 
-    renderWaveform(ctx, stateRef.current, rect.width, rect.height);
+    renderWaveform(ctx, stateRef.current, rect.width, rect.height, colorRef.current);
     animFrameRef.current = requestAnimationFrame(animate);
   }, []);
 

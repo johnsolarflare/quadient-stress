@@ -1,4 +1,4 @@
-import { getHRZone, getZoneColor } from '../types';
+// color is passed in from App so the waveform always matches stableZone
 
 export interface WaveformState {
   dataPoints: number[];
@@ -102,16 +102,14 @@ export function renderWaveform(
   ctx: CanvasRenderingContext2D,
   state: WaveformState,
   width: number,
-  height: number
+  height: number,
+  color: string,
 ): void {
   const dpr = window.devicePixelRatio || 1;
   const W = width * dpr;
   const H = height * dpr;
 
   ctx.clearRect(0, 0, W, H);
-
-  const zone = getHRZone(state.currentBPM);
-  const color = getZoneColor(zone);
 
   // Background — black for maximum contrast and dramatic ECG on light UI
   ctx.fillStyle = '#000000';
