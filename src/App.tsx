@@ -259,12 +259,9 @@ export default function App() {
     if (staleTimerRef.current) clearTimeout(staleTimerRef.current);
     staleTimerRef.current = window.setTimeout(clearBpmOnStale, 5000);
 
-    // Exponential moving average: 30% weight to new reading, 70% to history.
-    // Primes directly from the first reading after a gap to avoid a slow ramp-up from 0.
-    const prevSmoothed = smoothedBPMRef.current;
-    const newSmoothed = prevSmoothed > 0
-      ? Math.round(0.3 * reading.bpm + 0.7 * prevSmoothed)
-      : reading.bpm;
+    // Use the device's BPM value directly — the Verity Sense already smooths
+    // internally, so adding our own smoothing only adds lag.
+    const newSmoothed = reading.bpm;
     smoothedBPMRef.current = newSmoothed;
     setSmoothedBPM(newSmoothed);
 
