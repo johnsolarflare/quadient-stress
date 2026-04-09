@@ -75,28 +75,6 @@ export function pushStatus(bpm: number, sessionState: string, dataSource: string
   set(sessionRef('status'), { bpm, sessionState, dataSource, connectionState, updatedAt: Date.now() });
 }
 
-/** Remote controller → nudges BPM offset up or down */
-export function sendBpmNudge(direction: 'up' | 'down'): void {
-  if (!db) return;
-  set(sessionRef('bpmNudge'), { direction, nudgedAt: Date.now() });
-}
-
-/** Host → listens for BPM nudge requests from remote */
-export function onRemoteBpmNudge(
-  callback: (direction: 'up' | 'down') => void,
-): () => void {
-  if (!db) return () => {};
-  let seenNudgedAt: number | null = null;
-  return onValue(sessionRef('bpmNudge'), (snapshot) => {
-    const data = snapshot.val() as { direction: 'up' | 'down'; nudgedAt: number } | null;
-    if (!data) { seenNudgedAt = null; return; }
-    if (seenNudgedAt === null) { seenNudgedAt = data.nudgedAt; return; }
-    if (data.nudgedAt <= seenNudgedAt) return;
-    seenNudgedAt = data.nudgedAt;
-    callback(data.direction);
-  });
-}
-
 /** Host → listens for commands from remote */
 export function onRemoteCommand(
   callback: (command: RemoteCommand) => void,

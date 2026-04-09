@@ -5,7 +5,7 @@ import { BLEService } from './services/ble';
 import { DummyDataService } from './services/dummyData';
 import { SessionManager } from './services/sessionManager';
 import { getAggregatedStats } from './services/db';
-import { initRemoteSync, onRemoteCommand, onRemoteDataSource, onRemoteBpmNudge, pushStatus } from './services/remoteSync';
+import { initRemoteSync, onRemoteCommand, onRemoteDataSource, pushStatus } from './services/remoteSync';
 import { Header } from './components/Header';
 import { Waveform } from './components/Waveform';
 import { BPMDisplay } from './components/BPMDisplay';
@@ -95,7 +95,6 @@ export default function App() {
   const bpmOffsetRef = useRef(0);
   const baselineHRRef = useRef(70);
   const startTimeRef = useRef<number | null>(null);
-  const visualBPMRef = useRef(0);
 
   const [idlePunIndex, setIdlePunIndex] = useState(0);
   const [idleScreen, setIdleScreen] = useState<'challenger' | 'prize'>('challenger');
@@ -324,36 +323,18 @@ export default function App() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sessionState, dataSource]);
 
-  // Listen for BPM nudge requests from remote
-  useEffect(() => {
-    const unsub = onRemoteBpmNudge((direction) => {
-      if (sessionState !== 'active') return;
-      setBpmOffset((prev) =>
-        direction === 'up' ? Math.min(prev + 2, 120) : Math.max(prev - 2, -40)
-      );
-    });
-    return unsub;
-  }, [sessionState]);
-
-  // Push live status to Firebase so remote control can display it (every ~1s)
+  // Push live status to Firebase so remote control can display it (every ~2s)
   useEffect(() => {
     if (sessionState !== 'active') return;
-    const id = setInterval(() => pushStatus(visualBPMRef.current, sessionState, dataSource, connectionState), 1000);
+    const id = setInterval(() => pushStatus(smoothedBPM, sessionState, dataSource, connectionState), 2000);
     return () => clearInterval(id);
-  }, [sessionState, dataSource, connectionState]);
+  }, [sessionState, smoothedBPM, dataSource, connectionState]);
 
-  // Push immediately on session/connection/source state change
+  // On session/connection/source state change, push immediately
   useEffect(() => {
-    pushStatus(visualBPMRef.current, sessionState, dataSource, connectionState);
+    pushStatus(smoothedBPM, sessionState, dataSource, connectionState);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sessionState, dataSource, connectionState]);
-
-  // Push immediately when bpmOffset changes so remote reflects nudge instantly
-  useEffect(() => {
-    if (sessionState !== 'active') return;
-    pushStatus(visualBPMRef.current, sessionState, dataSource, connectionState);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [bpmOffset]);
 
   // Numbered quick-keys for session control (work without opening the panel)
   useEffect(() => {
@@ -466,7 +447,6 @@ export default function App() {
   // Compute visual BPM (amplified + operator offset) for all stress visuals
   // Uses smoothed BPM so display/zone/waveform don't jitter with per-reading noise
   const visualBPM = computeVisualBPM(smoothedBPM, baselineHR, sensitivityMultiplier, bpmOffset);
-  visualBPMRef.current = visualBPM;
   const zone: HRZone = getHRZone(visualBPM);
   const stressColor = getZoneColor(zone);
   const isActive = sessionState === 'active';
