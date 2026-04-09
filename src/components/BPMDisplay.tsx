@@ -1,13 +1,14 @@
-import { getHRZone, getZoneColor, getZoneLabel } from '../types';
+import { getZoneColor, getZoneLabel } from '../types';
+import type { HRZone } from '../types';
 
 interface BPMDisplayProps {
   bpm: number;
   visualBPM: number;
+  zone: HRZone;
   isActive: boolean;
 }
 
-export function BPMDisplay({ bpm, visualBPM, isActive }: BPMDisplayProps) {
-  const zone = getHRZone(visualBPM);
+export function BPMDisplay({ bpm, visualBPM, zone, isActive }: BPMDisplayProps) {
   const color = getZoneColor(zone);
   const label = getZoneLabel(zone);
 

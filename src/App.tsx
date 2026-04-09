@@ -74,7 +74,6 @@ export default function App() {
   const [connectionState, setConnectionState] = useState<ConnectionState>('disconnected');
   const [sessionState, setSessionState] = useState<SessionState>('idle');
   const [dataSource, setDataSource] = useState<DataSource>('dummy');
-  const [currentBPM, setCurrentBPM] = useState(0);
   const [smoothedBPM, setSmoothedBPM] = useState(0);
   const bpmHistoryRef = useRef<number[]>([]);
   const [batteryLevel, setBatteryLevel] = useState<number | null>(null);
@@ -130,6 +129,7 @@ export default function App() {
   const [bpmOffset, setBpmOffset] = useState(0);
   const [wristbandWorn, setWristbandWorn] = useState(true);
   const bpmOffsetRef = useRef(0);
+  const smoothedBPMRef = useRef(0); // tracks EMA value synchronously for use inside handleReading
   const activeThresholdsRef = useRef(activeThresholds);
   const decayIntervalRef = useRef<number | null>(null);
   const wristbandWornRef = useRef(false);
@@ -243,8 +243,8 @@ export default function App() {
   // Stale-reading watchdog: if no valid reading arrives within 3s, clear BPM
   const staleTimerRef = useRef<number | null>(null);
   const clearBpmOnStale = useCallback(() => {
-    setCurrentBPM(0);
     setSmoothedBPM(0);
+    smoothedBPMRef.current = 0;
     bpmHistoryRef.current = [];
   }, []);
 
@@ -255,22 +255,21 @@ export default function App() {
     // prevents idle/ambient sensor noise showing as a real heartbeat
     if (dataSourceRef.current === 'ble' && !wristbandWornRef.current) return;
 
-    setCurrentBPM(reading.bpm);
-
-    // Reset stale watchdog on every valid reading
+    // Reset stale watchdog on every valid reading — 5s gives Verity Sense room between beats
     if (staleTimerRef.current) clearTimeout(staleTimerRef.current);
-    staleTimerRef.current = window.setTimeout(clearBpmOnStale, 3000);
+    staleTimerRef.current = window.setTimeout(clearBpmOnStale, 5000);
 
-    // Rolling 4-reading average (~1s at 250ms interval) for stable display
-    bpmHistoryRef.current.push(reading.bpm);
-    if (bpmHistoryRef.current.length > 4) bpmHistoryRef.current.shift();
-    const avg = Math.round(
-      bpmHistoryRef.current.reduce((a, b) => a + b, 0) / bpmHistoryRef.current.length,
-    );
-    setSmoothedBPM(avg);
+    // Exponential moving average: 30% weight to new reading, 70% to history.
+    // Primes directly from the first reading after a gap to avoid a slow ramp-up from 0.
+    const prevSmoothed = smoothedBPMRef.current;
+    const newSmoothed = prevSmoothed > 0
+      ? Math.round(0.3 * reading.bpm + 0.7 * prevSmoothed)
+      : reading.bpm;
+    smoothedBPMRef.current = newSmoothed;
+    setSmoothedBPM(newSmoothed);
 
     // Record visual BPM (amplified + offset) so MIN/AVG/MAX match the display
-    const recordedBPM = computeVisualBPM(avg, baselineHRRef.current, 1.0, bpmOffsetRef.current);
+    const recordedBPM = computeVisualBPM(newSmoothed, baselineHRRef.current, 1.0, bpmOffsetRef.current);
     sessionManager.current.addReading({ ...reading, bpm: recordedBPM });
 
     // Baseline detection: collect first 10 seconds of readings (uses ref to avoid stale closure)
@@ -322,7 +321,8 @@ export default function App() {
       dummyService.current.stop();
     }
     setConnectionState('disconnected');
-    setCurrentBPM(0);
+    setSmoothedBPM(0);
+    smoothedBPMRef.current = 0;
     setBatteryLevel(null);
   };
 
@@ -359,8 +359,8 @@ export default function App() {
   const handleResetSession = () => {
     sessionManager.current.reset();
     setSessionState('idle');
-    setCurrentBPM(0);
     setSmoothedBPM(0);
+    smoothedBPMRef.current = 0;
     bpmHistoryRef.current = [];
     setSessionStats(null);
     setStartTime(null);
@@ -648,7 +648,7 @@ export default function App() {
           <div key="active-mobile" style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '0.5rem', minHeight: 0, animation: 'fadeIn 0.5s ease' }}>
             {/* BPM ring — centred */}
             <div style={{ display: 'flex', justifyContent: 'center', flexShrink: 0 }}>
-              <BPMDisplay bpm={currentBPM} visualBPM={visualBPM} isActive={isActive} />
+              <BPMDisplay bpm={smoothedBPM} visualBPM={visualBPM} zone={stableZone} isActive={isActive} />
             </div>
             {/* Waveform — takes remaining height */}
             <div style={{ flex: 1, borderRadius: '12px', overflow: 'hidden', minHeight: '100px', background: '#000000', boxShadow: '0 2px 16px rgba(0,0,0,0.18)' }}>
@@ -685,7 +685,7 @@ export default function App() {
               <Waveform bpm={visualBPM} isActive={isActive} />
             </div>
             <div style={{ gridColumn: 2, gridRow: 1 }}>
-              <BPMDisplay bpm={currentBPM} visualBPM={visualBPM} isActive={isActive} />
+              <BPMDisplay bpm={smoothedBPM} visualBPM={visualBPM} zone={stableZone} isActive={isActive} />
             </div>
             <div style={{ gridColumn: 1, gridRow: 2, display: 'flex', flexDirection: 'column', gap: '0.375rem' }}>
               <StressGauge bpm={visualBPM} isActive={isActive} stableZone={stableZone} />
