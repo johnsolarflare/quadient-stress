@@ -74,7 +74,6 @@ export default function App() {
   const [connectionState, setConnectionState] = useState<ConnectionState>('disconnected');
   const [sessionState, setSessionState] = useState<SessionState>('idle');
   const [dataSource, setDataSource] = useState<DataSource>('dummy');
-  const [currentBPM, setCurrentBPM] = useState(0);
   const [smoothedBPM, setSmoothedBPM] = useState(0);
   const bpmHistoryRef = useRef<number[]>([]);
   const [batteryLevel, setBatteryLevel] = useState<number | null>(null);
@@ -187,8 +186,6 @@ export default function App() {
   }, []);
 
   const handleReading = useCallback((reading: HRReading) => {
-    setCurrentBPM(reading.bpm);
-
     // Rolling 4-reading average (~1s at 250ms interval) for stable display
     bpmHistoryRef.current.push(reading.bpm);
     if (bpmHistoryRef.current.length > 4) bpmHistoryRef.current.shift();
@@ -250,7 +247,6 @@ export default function App() {
       dummyService.current.stop();
     }
     setConnectionState('disconnected');
-    setCurrentBPM(0);
     setBatteryLevel(null);
   };
 
@@ -286,7 +282,6 @@ export default function App() {
   const handleResetSession = () => {
     sessionManager.current.reset();
     setSessionState('idle');
-    setCurrentBPM(0);
     setSmoothedBPM(0);
     bpmHistoryRef.current = [];
     setSessionStats(null);
