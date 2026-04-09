@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
-import { getHRZone, getZoneColor, computeVisualBPM } from './types';
+import { getHRZone, getZoneColor, getZoneLabel, computeVisualBPM } from './types';
 import type { ConnectionState, SessionState, DataSource, HRReading, AggregatedStats, SessionData, HRZone } from './types';
 import { BLEService } from './services/ble';
 import { DummyDataService } from './services/dummyData';
@@ -152,12 +152,12 @@ export default function App() {
         case 'w':
         case 'W':
           e.preventDefault();
-          setBpmOffset((prev) => Math.min(prev + 15, 120));
+          setBpmOffset((prev) => Math.min(prev + 2, 120));
           break;
         case 's':
         case 'S':
           e.preventDefault();
-          setBpmOffset((prev) => Math.max(prev - 15, -40));
+          setBpmOffset((prev) => Math.max(prev - 2, -40));
           break;
       }
     };
@@ -165,7 +165,18 @@ export default function App() {
     return () => window.removeEventListener('keydown', handler);
   }, [sessionState]);
 
-  // Offset holds until operator manually adjusts — no auto-decay
+  // Decay offset back toward 0 at 1 BPM per 4s when session is active — gradual blend
+  useEffect(() => {
+    if (sessionState !== 'active') return;
+    if (bpmOffset === 0) return;
+    const id = setInterval(() => {
+      setBpmOffset((prev) => {
+        if (prev === 0) return 0;
+        return prev > 0 ? Math.max(0, prev - 1) : Math.min(0, prev + 1);
+      });
+    }, 4000);
+    return () => clearInterval(id);
+  }, [sessionState, bpmOffset]);
 
   useEffect(() => { bpmOffsetRef.current = bpmOffset; }, [bpmOffset]);
   useEffect(() => { baselineHRRef.current = baselineHR; }, [baselineHR]);
@@ -411,6 +422,28 @@ export default function App() {
     return () => clearTimeout(timer);
   }, [sessionState]);
 
+  // Dominant zone for results screen — time spent per zone across the session
+  const dominantZoneResult = useMemo(() => {
+    if (!sessionStats || sessionStats.readings.length < 2) return null;
+    const readings = sessionStats.readings;
+    const zoneDuration: Record<number, number> = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
+    for (let i = 1; i < readings.length; i++) {
+      const interval = readings[i].timestamp - readings[i - 1].timestamp;
+      const z = getHRZone(readings[i - 1].bpm);
+      zoneDuration[z] += interval;
+    }
+    const dominant = (Object.entries(zoneDuration).sort((a, b) => b[1] - a[1])[0][0]) as unknown as HRZone;
+    return Number(dominant) as HRZone;
+  }, [sessionStats]);
+
+  const ZONE_RESULTS_MESSAGES: Record<number, string> = {
+    1: "You kept your cool throughout. The in-tray didn't stand a chance.",
+    2: 'You stayed aware but in control — pressure noted, composure kept.',
+    3: 'You felt the heat. Every memo landed. You handled it.',
+    4: 'Things got intense — the deadlines were closing in and you felt every one.',
+    5: "Full overload. The projector bulb blew and you didn't flinch.",
+  };
+
   // Compute visual BPM (amplified + operator offset) for all stress visuals
   // Uses smoothed BPM so display/zone/waveform don't jitter with per-reading noise
   const visualBPM = computeVisualBPM(smoothedBPM, baselineHR, sensitivityMultiplier, bpmOffset);
@@ -615,6 +648,57 @@ export default function App() {
               >
                 Session Complete
               </div>
+
+              {dominantZoneResult && (
+                <div
+                  style={{
+                    width: 'clamp(260px, 50vw, 420px)',
+                    borderRadius: '12px',
+                    background: '#fff',
+                    boxShadow: '0 2px 16px rgba(0,0,0,0.07)',
+                    borderTop: `4px solid ${getZoneColor(dominantZoneResult)}`,
+                    padding: 'clamp(1rem, 2vw, 1.5rem) clamp(1.25rem, 2.5vw, 2rem)',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '0.5rem',
+                  }}
+                >
+                  <div
+                    style={{
+                      fontSize: '0.65rem',
+                      fontFamily: 'Quicksand, sans-serif',
+                      fontWeight: 700,
+                      letterSpacing: '0.12em',
+                      color: '#9CA3AF',
+                      textTransform: 'uppercase',
+                    }}
+                  >
+                    Your dominant zone
+                  </div>
+                  <div
+                    style={{
+                      fontSize: 'clamp(1.1rem, 2.2vw, 1.5rem)',
+                      fontFamily: 'Quicksand, sans-serif',
+                      fontWeight: 700,
+                      color: getZoneColor(dominantZoneResult),
+                      lineHeight: 1.1,
+                    }}
+                  >
+                    Zone {dominantZoneResult} — {getZoneLabel(dominantZoneResult)}
+                  </div>
+                  <div
+                    style={{
+                      fontSize: 'clamp(0.75rem, 1.1vw, 0.85rem)',
+                      fontFamily: 'Montserrat, sans-serif',
+                      color: '#5C6371',
+                      lineHeight: 1.5,
+                    }}
+                  >
+                    {ZONE_RESULTS_MESSAGES[dominantZoneResult]}
+                  </div>
+                </div>
+              )}
+
               <div style={{ textAlign: 'center' }}>
                 <div
                   style={{
@@ -663,18 +747,6 @@ export default function App() {
                 ))}
               </div>
             </div>
-            {/* Full-width bottom row: stat cards + session summary — desktop only */}
-            {!isMobile && (
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr clamp(160px, 16vw, 210px)', gap: 'clamp(0.75rem, 1.5vw, 1.25rem)' }}>
-                <StatsCards
-                  minHR={sessionStats?.minHR ?? 0}
-                  avgHR={sessionStats?.avgHR ?? 0}
-                  maxHR={sessionStats?.maxHR ?? 0}
-                  isActive={true}
-                />
-                <SessionSummary stats={aggregatedStats} />
-              </div>
-            )}
           </div>
         ) : idleScreen === 'prize' ? (
           /* ── IDLE: PRIZE TAKEOVER ── GSAP-animated component */
