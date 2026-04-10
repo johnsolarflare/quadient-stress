@@ -114,31 +114,36 @@ export function computeVisualBPM(
 }
 
 /**
- * Determine the HR zone given a raw BPM value and a sensitivity multiplier.
+ * Determine the HR zone given a raw BPM value, sensitivity multiplier, and
+ * a personalised baseline (the participant's resting HR at session start).
  *
- * Uses a fixed pivot of 70 BPM so behaviour is identical from the very first
- * reading — no baseline detection warmup, no mid-session threshold shifts.
+ * All zone gaps are calculated relative to the baseline, so thresholds scale
+ * with the individual — someone resting at 55 BPM reaches the same zones with
+ * the same relative effort as someone resting at 85 BPM.
  *
- * At 1.0× the thresholds are the calibrated office values (72 / 83 / 95 / 112).
- * Higher sensitivity compresses all five zone widths equally so every zone
- * transition feels uniformly more responsive, not just the early ones.
+ * At 1.0× with the default baseline of 70, thresholds match the calibrated
+ * office values exactly: 72 / 83 / 95 / 112.
  *
- *   Sensitivity │ Z1→Z2 │ Z2→Z3 │ Z3→Z4 │ Z4→Z5  (pivot = 70 BPM)
- *   ────────────┼───────┼───────┼───────┼───────
- *   0.5×        │  74   │  96   │  120  │  154
- *   1.0×        │  72   │  83   │   95  │  112
- *   1.5×        │  71   │  79   │   87  │   98
- *   2.0×        │  71   │  77   │   83  │   91
- *   3.0×        │  71   │  75   │   79  │   84
+ * Higher sensitivity compresses all zone widths uniformly (not just early ones).
+ *
+ *   Sensitivity │ Z1→Z2         │ Z2→Z3         │ Z3→Z4         │ Z4→Z5
+ *   ────────────┼───────────────┼───────────────┼───────────────┼──────────────
+ *   0.5×        │ baseline + 4  │ baseline + 26 │ baseline + 50 │ baseline + 84
+ *   1.0×        │ baseline + 2  │ baseline + 13 │ baseline + 25 │ baseline + 42
+ *   1.5×        │ baseline + 1  │ baseline + 9  │ baseline + 17 │ baseline + 28
+ *   2.0×        │ baseline + 1  │ baseline + 7  │ baseline + 13 │ baseline + 21
+ *   3.0×        │ baseline + 1  │ baseline + 4  │ baseline +  8 │ baseline + 14
  */
-export function getHRZoneWithSensitivity(bpm: number, sensitivity: number): HRZone {
-  // Calibrated zone gaps above the 70 BPM pivot at 1.0×
-  // Divided by sensitivity to compress all gaps uniformly
-  const PIVOT = 70;
-  const z2 = PIVOT + 2  / sensitivity;  // 72 at 1.0×
-  const z3 = PIVOT + 13 / sensitivity;  // 83 at 1.0×
-  const z4 = PIVOT + 25 / sensitivity;  // 95 at 1.0×
-  const z5 = PIVOT + 42 / sensitivity;  // 112 at 1.0×
+export function getHRZoneWithSensitivity(
+  bpm: number,
+  sensitivity: number,
+  baseline = 70,
+): HRZone {
+  // Zone gaps above baseline at 1.0×, divided by sensitivity for uniform compression
+  const z2 = baseline + 2  / sensitivity;  // +2  at 1.0×
+  const z3 = baseline + 13 / sensitivity;  // +13 at 1.0×
+  const z4 = baseline + 25 / sensitivity;  // +25 at 1.0×
+  const z5 = baseline + 42 / sensitivity;  // +42 at 1.0×
   if (bpm < z2) return 1;
   if (bpm < z3) return 2;
   if (bpm < z4) return 3;

@@ -92,6 +92,15 @@ export default function App() {
   const startTimeRef = useRef<number | null>(null);
   const visualBPMRef = useRef(0);
 
+  // Baseline HR: locked from the first 3 readings after session start (~750ms).
+  // Personalises zone thresholds to the participant's actual resting HR.
+  // Fixed immediately — no mid-session shifts.
+  const [baselineHR, setBaselineHR] = useState(70);
+  const baselineHRRef = useRef(70);
+  const baselineReadingCount = useRef(0);
+  const baselineSum = useRef(0);
+  const baselineLocked = useRef(false);
+
   const [idlePunIndex, setIdlePunIndex] = useState(0);
   const [idleScreen, setIdleScreen] = useState<'challenger' | 'prize'>('challenger');
   const [idleTransitioning, setIdleTransitioning] = useState(false);
@@ -175,6 +184,7 @@ export default function App() {
   }, [sessionState, bpmOffset]);
 
   useEffect(() => { bpmOffsetRef.current = bpmOffset; }, [bpmOffset]);
+  useEffect(() => { baselineHRRef.current = baselineHR; }, [baselineHR]);
 
   useEffect(() => {
     sessionManager.current.onStateChange = (state) => setSessionState(state);
@@ -193,6 +203,20 @@ export default function App() {
     // Record display BPM (raw + offset) so MIN/AVG/MAX match what was shown on screen
     const recordedBPM = Math.round(Math.max(40, Math.min(220, avg + bpmOffsetRef.current)));
     sessionManager.current.addReading({ ...reading, bpm: recordedBPM });
+
+    // Baseline lock: average the first 3 readings after session start (~750ms).
+    // Personalises zone thresholds to this participant's resting HR.
+    // Applied immediately — no mid-session shift.
+    if (!baselineLocked.current && startTimeRef.current) {
+      baselineSum.current += reading.bpm;
+      baselineReadingCount.current += 1;
+      if (baselineReadingCount.current >= 3) {
+        const detected = Math.round(baselineSum.current / baselineReadingCount.current);
+        setBaselineHR(detected);
+        baselineHRRef.current = detected;
+        baselineLocked.current = true;
+      }
+    }
   }, []);
 
   const handleConnect = async () => {
@@ -271,6 +295,11 @@ export default function App() {
     setStartTime(null);
     startTimeRef.current = null;
     setBpmOffset(0);
+    setBaselineHR(70);
+    baselineHRRef.current = 70;
+    baselineLocked.current = false;
+    baselineReadingCount.current = 0;
+    baselineSum.current = 0;
   };
 
   const handleToggleDataSource = () => {
@@ -436,8 +465,8 @@ export default function App() {
   const displayBPM = Math.round(Math.max(40, Math.min(220, smoothedBPM + bpmOffset)));
   visualBPMRef.current = displayBPM;
 
-  // Zone is derived from displayBPM + sensitivity — fixed pivot of 70 BPM, no baseline detection
-  const zone: HRZone = getHRZoneWithSensitivity(displayBPM, sensitivityMultiplier);
+  // Zone: sensitivity + participant's locked baseline (set from first 3 readings, ~750ms)
+  const zone: HRZone = getHRZoneWithSensitivity(displayBPM, sensitivityMultiplier, baselineHR);
   const isActive = sessionState === 'active';
 
   // Fast zone debounce (500ms) for the gauge — reacts quickly to real changes
