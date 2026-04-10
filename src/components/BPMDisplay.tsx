@@ -3,12 +3,11 @@ import type { HRZone } from '../types';
 
 interface BPMDisplayProps {
   bpm: number;
-  visualBPM: number;
   zone: HRZone;
   isActive: boolean;
 }
 
-export function BPMDisplay({ bpm, visualBPM, zone, isActive }: BPMDisplayProps) {
+export function BPMDisplay({ bpm, zone, isActive }: BPMDisplayProps) {
   const color = getZoneColor(zone);
   const label = getZoneLabel(zone);
 
@@ -17,7 +16,7 @@ export function BPMDisplay({ bpm, visualBPM, zone, isActive }: BPMDisplayProps) 
   const radius = 52;
   const circumference = 2 * Math.PI * radius;
 
-  const pulseDuration = visualBPM > 0 ? Math.max(0.4, 60 / visualBPM) : 1;
+  const pulseDuration = bpm > 0 ? Math.max(0.4, 60 / bpm) : 1;
 
   return (
     <div

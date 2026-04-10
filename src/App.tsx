@@ -451,10 +451,14 @@ export default function App() {
     5: "Full overload. The projector bulb blew and you didn't flinch.",
   };
 
-  // Compute visual BPM (amplified + operator offset) for all stress visuals
-  // Uses smoothed BPM so display/zone/waveform don't jitter with per-reading noise
+  // displayBPM: raw sensor value + manual W/S offset — what the user sees as their heart rate
+  // Never amplified by sensitivity; this is the number on screen and the waveform speed
+  const displayBPM = Math.round(Math.max(40, Math.min(220, smoothedBPM + bpmOffset)));
+  visualBPMRef.current = displayBPM;
+
+  // zoneBPM: amplifies deviation from baseline by sensitivityMultiplier — internal only
+  // Used solely to determine which zone (1–5) is active; never shown as a number
   const visualBPM = computeVisualBPM(smoothedBPM, baselineHR, sensitivityMultiplier, bpmOffset);
-  visualBPMRef.current = visualBPM;
   const zone: HRZone = getHRZone(visualBPM);
   const isActive = sessionState === 'active';
 
@@ -567,11 +571,11 @@ export default function App() {
           <div key="active-mobile" style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '0.5rem', minHeight: 0, animation: 'fadeIn 0.5s ease' }}>
             {/* BPM ring — centred */}
             <div style={{ display: 'flex', justifyContent: 'center', flexShrink: 0 }}>
-              <BPMDisplay bpm={smoothedBPM} visualBPM={visualBPM} zone={stableZone} isActive={isActive} />
+              <BPMDisplay bpm={displayBPM} zone={stableZone} isActive={isActive} />
             </div>
             {/* Waveform — takes remaining height */}
             <div style={{ flex: 1, borderRadius: '12px', overflow: 'hidden', minHeight: '100px', background: '#000000', boxShadow: '0 2px 16px rgba(0,0,0,0.18)' }}>
-              <Waveform bpm={visualBPM} color={stressColor} isActive={isActive} />
+              <Waveform bpm={displayBPM} color={stressColor} isActive={isActive} />
             </div>
             {/* HR Zone + pun + timer */}
             <div style={{ flexShrink: 0, display: 'flex', flexDirection: 'column', gap: '0.2rem' }}>
@@ -601,10 +605,10 @@ export default function App() {
             }}
           >
             <div style={{ gridColumn: 1, gridRow: 1, borderRadius: '12px', overflow: 'hidden', height: '100%', background: '#000000', boxShadow: '0 2px 16px rgba(0,0,0,0.18)' }}>
-              <Waveform bpm={visualBPM} color={stressColor} isActive={isActive} />
+              <Waveform bpm={displayBPM} color={stressColor} isActive={isActive} />
             </div>
             <div style={{ gridColumn: 2, gridRow: 1 }}>
-              <BPMDisplay bpm={smoothedBPM} visualBPM={visualBPM} zone={stableZone} isActive={isActive} />
+              <BPMDisplay bpm={displayBPM} zone={stableZone} isActive={isActive} />
             </div>
             <div style={{ gridColumn: 1, gridRow: 2, display: 'flex', flexDirection: 'column', gap: '0.375rem' }}>
               <StressGauge bpm={visualBPM} isActive={isActive} stableZone={stableZone} />
