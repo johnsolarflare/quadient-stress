@@ -100,6 +100,7 @@ export function getZoneLabel(zone: HRZone): string {
  * Compute the visual BPM used for all stress-level visuals.
  * Amplifies deviations from baseline and adds operator offset.
  * Raw BPM is still shown as the number; this drives colors/gauge/waveform.
+ * @deprecated Use getHRZoneWithSensitivity for zone calculation instead.
  */
 export function computeVisualBPM(
   rawBPM: number,
@@ -110,4 +111,37 @@ export function computeVisualBPM(
   const amplifiedBPM = baseline + (rawBPM - baseline) * multiplier;
   const totalBPM = amplifiedBPM + bpmOffset;
   return Math.round(Math.max(40, Math.min(220, totalBPM)));
+}
+
+/**
+ * Determine the HR zone given a raw BPM value and a sensitivity multiplier.
+ *
+ * Uses a fixed pivot of 70 BPM so behaviour is identical from the very first
+ * reading — no baseline detection warmup, no mid-session threshold shifts.
+ *
+ * At 1.0× the thresholds are the calibrated office values (72 / 83 / 95 / 112).
+ * Higher sensitivity compresses all five zone widths equally so every zone
+ * transition feels uniformly more responsive, not just the early ones.
+ *
+ *   Sensitivity │ Z1→Z2 │ Z2→Z3 │ Z3→Z4 │ Z4→Z5  (pivot = 70 BPM)
+ *   ────────────┼───────┼───────┼───────┼───────
+ *   0.5×        │  74   │  96   │  120  │  154
+ *   1.0×        │  72   │  83   │   95  │  112
+ *   1.5×        │  71   │  79   │   87  │   98
+ *   2.0×        │  71   │  77   │   83  │   91
+ *   3.0×        │  71   │  75   │   79  │   84
+ */
+export function getHRZoneWithSensitivity(bpm: number, sensitivity: number): HRZone {
+  // Calibrated zone gaps above the 70 BPM pivot at 1.0×
+  // Divided by sensitivity to compress all gaps uniformly
+  const PIVOT = 70;
+  const z2 = PIVOT + 2  / sensitivity;  // 72 at 1.0×
+  const z3 = PIVOT + 13 / sensitivity;  // 83 at 1.0×
+  const z4 = PIVOT + 25 / sensitivity;  // 95 at 1.0×
+  const z5 = PIVOT + 42 / sensitivity;  // 112 at 1.0×
+  if (bpm < z2) return 1;
+  if (bpm < z3) return 2;
+  if (bpm < z4) return 3;
+  if (bpm < z5) return 4;
+  return 5;
 }
