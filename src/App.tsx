@@ -5,7 +5,7 @@ import { BLEService } from './services/ble';
 import { DummyDataService } from './services/dummyData';
 import { SessionManager } from './services/sessionManager';
 import { getAggregatedStats } from './services/db';
-import { initRemoteSync, onRemoteCommand, onRemoteDataSource, pushStatus } from './services/remoteSync';
+import { initRemoteSync, onRemoteCommand, onRemoteDataSource, onRemoteBpmNudge, pushStatus } from './services/remoteSync';
 import { Header } from './components/Header';
 import { Waveform } from './components/Waveform';
 import { BPMDisplay } from './components/BPMDisplay';
@@ -322,6 +322,17 @@ export default function App() {
     return unsub;
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sessionState, dataSource]);
+
+  // Listen for BPM nudge requests from remote
+  useEffect(() => {
+    const unsub = onRemoteBpmNudge((direction) => {
+      if (sessionState !== 'active') return;
+      setBpmOffset((prev) =>
+        direction === 'up' ? Math.min(prev + 2, 120) : Math.max(prev - 2, -40)
+      );
+    });
+    return unsub;
+  }, [sessionState]);
 
   // Push live status to Firebase so remote control can display it (every ~2s)
   useEffect(() => {

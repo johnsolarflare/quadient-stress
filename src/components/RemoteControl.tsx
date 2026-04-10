@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { sendCommand, sendDataSource, onStatus, validatePin, setActivePin } from '../services/remoteSync';
+import { sendCommand, sendDataSource, sendBpmNudge, onStatus, validatePin, setActivePin } from '../services/remoteSync';
 import type { SessionState, ConnectionState, DataSource } from '../types';
 
 const CACHE_KEY = 'remote_pin';
@@ -157,17 +157,37 @@ export function RemoteControl() {
         </div>
       </div>
 
-      {/* Live BPM */}
-      {sessionState === 'active' && (
-        <div style={{ textAlign: 'center' }}>
-          <div style={{ fontSize: '4rem', fontFamily: 'Quicksand, sans-serif', fontWeight: 700, color: '#FF4200', lineHeight: 1 }}>
-            {bpm > 0 ? bpm : '--'}
-          </div>
-          <div style={{ fontSize: '0.75rem', fontFamily: 'Quicksand, sans-serif', fontWeight: 600, color: '#5C6371', marginTop: '0.25rem' }}>
-            BPM
-          </div>
+      {/* Live BPM + nudge controls */}
+      <div style={{ textAlign: 'center' }}>
+        <div style={{ fontSize: '4rem', fontFamily: 'Quicksand, sans-serif', fontWeight: 700, color: '#FF4200', lineHeight: 1 }}>
+          {bpm > 0 ? bpm : '--'}
         </div>
-      )}
+        <div style={{ fontSize: '0.75rem', fontFamily: 'Quicksand, sans-serif', fontWeight: 600, color: '#5C6371', marginTop: '0.25rem' }}>
+          LIVE BPM
+        </div>
+        {sessionState === 'active' && (
+          <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'center', marginTop: '1rem' }}>
+            <button
+              onClick={() => sendBpmNudge('down')}
+              style={{
+                width: '64px', height: '64px', borderRadius: '50%', border: 'none',
+                background: '#1F2937', color: '#fff',
+                fontSize: '1.75rem', fontFamily: 'Quicksand, sans-serif', fontWeight: 700,
+                cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+              }}
+            >−</button>
+            <button
+              onClick={() => sendBpmNudge('up')}
+              style={{
+                width: '64px', height: '64px', borderRadius: '50%', border: 'none',
+                background: '#FF4200', color: '#fff',
+                fontSize: '1.75rem', fontFamily: 'Quicksand, sans-serif', fontWeight: 700,
+                cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+              }}
+            >+</button>
+          </div>
+        )}
+      </div>
 
       {/* Session status */}
       <div style={{
