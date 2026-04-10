@@ -94,6 +94,7 @@ export default function App() {
   const bpmOffsetRef = useRef(0);
   const baselineHRRef = useRef(70);
   const startTimeRef = useRef<number | null>(null);
+  const visualBPMRef = useRef(0);
 
   const [idlePunIndex, setIdlePunIndex] = useState(0);
   const [idleScreen, setIdleScreen] = useState<'challenger' | 'prize'>('challenger');
@@ -329,16 +330,16 @@ export default function App() {
     return unsub;
   }, [sessionState]);
 
-  // Push live status to Firebase so remote control can display it (every ~2s)
+  // Push live status to Firebase so remote control can display it (every ~1s)
   useEffect(() => {
     if (sessionState !== 'active') return;
-    const id = setInterval(() => pushStatus(smoothedBPM, sessionState, dataSource, connectionState), 2000);
+    const id = setInterval(() => pushStatus(visualBPMRef.current, sessionState, dataSource, connectionState), 1000);
     return () => clearInterval(id);
-  }, [sessionState, smoothedBPM, dataSource, connectionState]);
+  }, [sessionState, dataSource, connectionState]);
 
   // On session/connection/source state change, push immediately
   useEffect(() => {
-    pushStatus(smoothedBPM, sessionState, dataSource, connectionState);
+    pushStatus(visualBPMRef.current, sessionState, dataSource, connectionState);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sessionState, dataSource, connectionState]);
 
@@ -453,6 +454,7 @@ export default function App() {
   // Compute visual BPM (amplified + operator offset) for all stress visuals
   // Uses smoothed BPM so display/zone/waveform don't jitter with per-reading noise
   const visualBPM = computeVisualBPM(smoothedBPM, baselineHR, sensitivityMultiplier, bpmOffset);
+  visualBPMRef.current = visualBPM;
   const zone: HRZone = getHRZone(visualBPM);
   const isActive = sessionState === 'active';
 
