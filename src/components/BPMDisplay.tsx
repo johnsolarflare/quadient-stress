@@ -99,7 +99,7 @@ export function BPMDisplay({ bpm, visualBPM, zone, isActive }: BPMDisplayProps) 
               fontVariantNumeric: 'tabular-nums',
             }}
           >
-            {isActive && bpm > 0 ? visualBPM : '--'}
+            {isActive && bpm > 0 ? bpm : '--'}
           </div>
           <div
             style={{
