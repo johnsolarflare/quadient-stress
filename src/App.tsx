@@ -86,7 +86,7 @@ export default function App() {
   const [bleError, setBleError] = useState<string | null>(null);
 
   // Visual sensitivity & operator override
-  const [sensitivityMultiplier] = useState(1.0);
+  const [sensitivityMultiplier, setSensitivityMultiplier] = useState(1.0);
   const [baselineHR, setBaselineHR] = useState(70);
   const [baselineDetected, setBaselineDetected] = useState(false);
   const baselineReadings = useRef<number[]>([]);
@@ -859,6 +859,8 @@ export default function App() {
           onStatsRefresh={refreshStats}
           bleError={bleError}
           onClearBleError={() => setBleError(null)}
+          sensitivityMultiplier={sensitivityMultiplier}
+          onSensitivityChange={setSensitivityMultiplier}
         />
       )}
     </div>
