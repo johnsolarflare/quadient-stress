@@ -42,6 +42,8 @@ This file is the source of truth between conversations.
 - `staging-2` has office-calibrated HR zone thresholds (not exercise zones)
 - `staging-2` has colour unification fix (all visuals keyed to `stableZone`)
 - `staging-2` has improved BLE sensor contact filtering
+- `staging-2` has zone sensitivity slider in OperatorPanel (0.5×–3.0×)
+- `staging-2` uses `VITE_ENV_NAMESPACE=staging` → isolated Firebase path (no live bleed)
 
 **Never merge staging-2 into main without explicit instruction from John.**
 
@@ -78,6 +80,17 @@ vercel list quadient-stress-dashboard --scope john-2408s-projects | head -8
 vercel alias set <new-deployment-url> quadient-stress-staging-2.vercel.app --scope john-2408s-projects
 ```
 
+**Required env vars per environment (set in Vercel dashboard):**
+
+| Var | Production (main) | Preview (staging-2) |
+|-----|-------------------|---------------------|
+| `VITE_ENV_NAMESPACE` | `live` | `staging` |
+| `VITE_REMOTE_PIN` | `5014` | `5014` |
+| `VITE_FIREBASE_*` | (set) | (set) |
+
+`VITE_ENV_NAMESPACE` scopes the Firebase path so live and staging never share session data.
+**If this var is missing, it defaults to `live` — staging would bleed into live Firebase.**
+
 **Env vars are pulled like this (for reference only — don't build locally for deploy):**
 ```bash
 vercel env pull .env.production.local --environment production --scope john-2408s-projects
@@ -92,11 +105,14 @@ All colour-changing elements must derive from a **single source of truth**: `sta
 ```
 rawBPM (from BLE/dummy)
   → smoothedBPM (4-reading rolling average)
-  → visualBPM = computeVisualBPM(smoothedBPM, baseline, multiplier, bpmOffset)
-  → zone = getHRZone(visualBPM)
+  → displayBPM = clamp(smoothedBPM + bpmOffset, 40, 220)   ← shown on screen, drives waveform/pulse speed
+  → zoneBPM = computeVisualBPM(smoothedBPM, baseline, sensitivityMultiplier, bpmOffset)  ← internal only
+  → zone = getHRZone(zoneBPM)
   → stableZone (500ms debounce — prevents flickering)
   → stressColor = getZoneColor(stableZone)
 ```
+
+**Key invariant:** `displayBPM` is the only value ever shown to users as a BPM number. It is the raw sensor value + operator offset. Zone sensitivity (`sensitivityMultiplier`) is applied to `zoneBPM` only — it never touches the displayed number or waveform speed.
 
 **Every visual** — waveform colour, ring colour, heartbeat colour, zone bar, pun text, background glow — must use `stressColor` or `stableZone`. Never compute zone independently inside a child component.
 
@@ -113,50 +129,53 @@ rawBPM (from BLE/dummy)
 ### Remote sync architecture
 
 - Dashboard (`App.tsx`) pushes BPM to Firebase every **1s** via `visualBPMRef.current`
-- `visualBPMRef` is a ref kept in sync with `visualBPM` on every render — avoids stale closure
+- `visualBPMRef` is a ref kept in sync with `displayBPM` on every render — avoids stale closure; pushes the display value (not the amplified zone value)
 - Remote (`RemoteControl.tsx`) reads Firebase via `onStatus()` listener
 - Nudge buttons (`+`/`−`) call `sendBpmNudge()` → Firebase → `onRemoteBpmNudge()` listener in `App.tsx` → adjusts `bpmOffset` by ±2 BPM (max ±120/−40)
+- Firebase path: `sessions/${ENV_NAMESPACE}/${activePin}/...` — namespace isolates live vs staging
+
+### Zone sensitivity
+
+- `sensitivityMultiplier` in `App.tsx` scales BPM deviation from baseline: `baseline + (bpm - baseline) * multiplier`
+- Controlled via slider in OperatorPanel (0.5×–3.0×, default 1.0×)
+- Affects `visualBPM` which drives all zone/colour logic — does NOT change raw BPM display
 
 ---
 
 ## Open Issues (as of 2026-04-10)
 
-### 🔴 Critical
+### 🔴 Needs action (manual Vercel config)
 
-- **[ISSUE-1] staging-2 alias may lag behind latest git push**  
-  The `quadient-stress-staging-2.vercel.app` alias is manually managed and can fall behind.  
-  After every push to `staging-2`, verify the alias points to the latest Preview deployment.  
-  `vercel alias list --scope john-2408s-projects | grep staging-2`
+- **[ISSUE-1] VITE_ENV_NAMESPACE not yet set in Vercel**  
+  Code is deployed but the env var must be added in the Vercel dashboard for isolation to take effect.  
+  **Action:** Go to Vercel → quadient-stress-dashboard → Settings → Environment Variables:  
+  - Production (main): `VITE_ENV_NAMESPACE` = `live`  
+  - Preview (staging-2): `VITE_ENV_NAMESPACE` = `staging`  
+  Without this, staging defaults to the `live` namespace and cross-contamination continues.
 
-- **[ISSUE-2] Remote BPM not real-time**  
-  Fix was pushed (2026-04-10: `visualBPMRef` + 1s interval) but staging-2 alias may not be pointing to it yet.  
-  Need to confirm alias is pointing to commit `043fcaa` or later.
+### 🟡 Needs verification (in-person with live wristband)
 
-- **[ISSUE-3] Staging-2 lost Zone Sensitivity UI**  
-  The zone sensitivity selector (UI for adjusting thresholds) is missing from staging-2.  
-  The thresholds are hardcoded in `src/types/index.ts` `getHRZone()`.  
-  Need to clarify with John whether this was a separate operator panel UI or just the hardcoded values.
+- **[ISSUE-2] Wristband colour consistency on staging-2**  
+  Colour unification fix applied (`6f9c8c7`) and code is correct. Not yet tested with live BLE.  
+  Demo data confirmed working. Need real Polar sensor session to validate all visuals sync together.
 
-### 🟡 Needs verification
+- **[ISSUE-3] Remote +/− buttons**  
+  Restored (`cf32b95`). Visible only during active session. Confirm they appear after Start Session.
 
-- **[ISSUE-4] Wristband colour consistency on staging-2**  
-  Colour unification fix was applied (commit `6f9c8c7`) but hasn't been confirmed working with a live wristband.  
-  Demo data works. Real BLE readings need an in-person test to confirm all visuals change together.
+### ✅ Resolved (2026-04-10)
 
-- **[ISSUE-5] Remote +/− buttons**  
-  Restored in commit `cf32b95` (staging-2) and `fc93741` (main). Should be present.  
-  Visible only during an active session. Confirm they appear after pressing Start Session.
-
-- **[ISSUE-6] Invalid PIN on remote after some deploys**  
-  Caused by local `--prebuilt` deploys missing env vars. Resolved by switching to git-push deploys.  
-  PIN is always `5014`. If this reappears, the deployment was done locally — redo via git push.
-
-### ✅ Resolved
-
-- Colour inconsistency between waveform, ring, and zone bar during BLE sessions → fixed `6f9c8c7`
-- BPMDisplay computing zone independently → fixed, now receives `stableZone` as prop
-- Waveform computing colour internally → fixed, now receives `color` prop from App
+- Cross-environment Firebase interference → fixed `a621a4c` (ENV_NAMESPACE isolation)
+- Zone sensitivity UI missing → fixed `a621a4c` (0.5×–3.0× slider in OperatorPanel)
+- BPMDisplay showing amplified value instead of real sensor BPM → fixed `da7f4e9`
+- staging-2 alias updated to `n7ireq0dk` (commit `da7f4e9`, 2026-04-10)
+- Remote BPM lag → fixed `043fcaa` (visualBPMRef + 1s push interval)
+- Colour inconsistency (waveform/ring/zone bar) → fixed `6f9c8c7` (stableZone as single source)
+- BPMDisplay computing zone independently → fixed, receives `stableZone` as prop
+- Waveform computing colour internally → fixed, receives `color` prop from App
 - `+`/`−` nudge buttons lost in revert → restored `cf32b95` / `fc93741`
+- Invalid PIN on remote after local deploys → resolved, always push via git
+- **Zone sensitivity affecting displayed BPM + pulse speed** → fixed `(pending commit)` — introduced `displayBPM = smoothedBPM + bpmOffset`; sensitivity only drives internal zone calc
+- **W/S manual BPM adjustment not visibly changing BPM number** → fixed same commit — `displayBPM` (not raw `smoothedBPM`) is now what's shown, so offset is visible
 
 ---
 

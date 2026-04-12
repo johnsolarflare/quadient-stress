@@ -100,6 +100,7 @@ export function getZoneLabel(zone: HRZone): string {
  * Compute the visual BPM used for all stress-level visuals.
  * Amplifies deviations from baseline and adds operator offset.
  * Raw BPM is still shown as the number; this drives colors/gauge/waveform.
+ * @deprecated Use getHRZoneWithSensitivity for zone calculation instead.
  */
 export function computeVisualBPM(
   rawBPM: number,
@@ -110,4 +111,42 @@ export function computeVisualBPM(
   const amplifiedBPM = baseline + (rawBPM - baseline) * multiplier;
   const totalBPM = amplifiedBPM + bpmOffset;
   return Math.round(Math.max(40, Math.min(220, totalBPM)));
+}
+
+/**
+ * Determine the HR zone given a raw BPM value, sensitivity multiplier, and
+ * a personalised baseline (the participant's resting HR at session start).
+ *
+ * All zone gaps are calculated relative to the baseline, so thresholds scale
+ * with the individual — someone resting at 55 BPM reaches the same zones with
+ * the same relative effort as someone resting at 85 BPM.
+ *
+ * At 1.0× with the default baseline of 70, thresholds match the calibrated
+ * office values exactly: 72 / 83 / 95 / 112.
+ *
+ * Higher sensitivity compresses all zone widths uniformly (not just early ones).
+ *
+ *   Sensitivity │ Z1→Z2         │ Z2→Z3         │ Z3→Z4         │ Z4→Z5
+ *   ────────────┼───────────────┼───────────────┼───────────────┼──────────────
+ *   0.5×        │ baseline + 4  │ baseline + 26 │ baseline + 50 │ baseline + 84
+ *   1.0×        │ baseline + 2  │ baseline + 13 │ baseline + 25 │ baseline + 42
+ *   1.5×        │ baseline + 1  │ baseline + 9  │ baseline + 17 │ baseline + 28
+ *   2.0×        │ baseline + 1  │ baseline + 7  │ baseline + 13 │ baseline + 21
+ *   3.0×        │ baseline + 1  │ baseline + 4  │ baseline +  8 │ baseline + 14
+ */
+export function getHRZoneWithSensitivity(
+  bpm: number,
+  sensitivity: number,
+  baseline = 70,
+): HRZone {
+  // Zone gaps above baseline at 1.0×, divided by sensitivity for uniform compression
+  const z2 = baseline + 2  / sensitivity;  // +2  at 1.0×
+  const z3 = baseline + 13 / sensitivity;  // +13 at 1.0×
+  const z4 = baseline + 25 / sensitivity;  // +25 at 1.0×
+  const z5 = baseline + 42 / sensitivity;  // +42 at 1.0×
+  if (bpm < z2) return 1;
+  if (bpm < z3) return 2;
+  if (bpm < z4) return 3;
+  if (bpm < z5) return 4;
+  return 5;
 }

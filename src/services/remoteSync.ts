@@ -15,6 +15,9 @@ export type RemoteDataSource = 'dummy' | 'ble';
 
 const DATABASE_URL = import.meta.env.VITE_FIREBASE_DATABASE_URL as string | undefined;
 const REMOTE_PIN = ((import.meta.env.VITE_REMOTE_PIN as string | undefined) || '5014').trim();
+// Namespace isolates Firebase data per deployment — 'live' for production, 'staging' for staging-2.
+// Set VITE_ENV_NAMESPACE in Vercel environment variables per deployment.
+const ENV_NAMESPACE = ((import.meta.env.VITE_ENV_NAMESPACE as string | undefined) || 'live').trim();
 
 let db: Database | null = null;
 let activePin = REMOTE_PIN;
@@ -33,8 +36,8 @@ export function getPin(): string {
 }
 
 function sessionRef(path: string) {
-  // Use PIN as namespace so only the correct PIN holder can access data
-  return ref(db!, `sessions/${activePin}/${path}`);
+  // ENV_NAMESPACE isolates live vs staging. PIN restricts access within that namespace.
+  return ref(db!, `sessions/${ENV_NAMESPACE}/${activePin}/${path}`);
 }
 
 export function initRemoteSync(): boolean {

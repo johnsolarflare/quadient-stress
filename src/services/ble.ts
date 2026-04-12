@@ -97,7 +97,18 @@ export class BLEService implements DataSourceInterface {
     const value = target.value;
     if (!value) return;
 
+    const flags = value.getUint8(0);
+    // Sensor Contact: bit 2 = feature supported, bit 1 = contact detected
+    // If the device supports sensor contact AND reports no contact, discard reading
+    const sensorContactSupported = (flags & 0x04) !== 0;
+    const sensorContactDetected  = (flags & 0x02) !== 0;
+    if (sensorContactSupported && !sensorContactDetected) return;
+
     const reading = this.parseHRMeasurement(value);
+
+    // Also discard zero-BPM readings (device reporting no signal)
+    if (reading.bpm === 0) return;
+
     this.onReading?.(reading);
   };
 

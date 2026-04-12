@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
-import { getHRZone, getZoneColor, getZoneLabel, computeVisualBPM } from './types';
+import { getZoneColor, getZoneLabel, getHRZoneWithSensitivity } from './types';
 import type { ConnectionState, SessionState, DataSource, HRReading, AggregatedStats, SessionData, HRZone } from './types';
 import { BLEService } from './services/ble';
 import { DummyDataService } from './services/dummyData';
@@ -74,7 +74,6 @@ export default function App() {
   const [connectionState, setConnectionState] = useState<ConnectionState>('disconnected');
   const [sessionState, setSessionState] = useState<SessionState>('idle');
   const [dataSource, setDataSource] = useState<DataSource>('dummy');
-  const [currentBPM, setCurrentBPM] = useState(0);
   const [smoothedBPM, setSmoothedBPM] = useState(0);
   const bpmHistoryRef = useRef<number[]>([]);
   const [batteryLevel, setBatteryLevel] = useState<number | null>(null);
@@ -87,15 +86,20 @@ export default function App() {
   const [bleError, setBleError] = useState<string | null>(null);
 
   // Visual sensitivity & operator override
-  const [sensitivityMultiplier] = useState(1.0);
-  const [baselineHR, setBaselineHR] = useState(70);
-  const [baselineDetected, setBaselineDetected] = useState(false);
-  const baselineReadings = useRef<number[]>([]);
+  const [sensitivityMultiplier, setSensitivityMultiplier] = useState(1.0);
   const [bpmOffset, setBpmOffset] = useState(0);
   const bpmOffsetRef = useRef(0);
-  const baselineHRRef = useRef(70);
   const startTimeRef = useRef<number | null>(null);
   const visualBPMRef = useRef(0);
+
+  // Baseline HR: locked from the first 3 readings after session start (~750ms).
+  // Personalises zone thresholds to the participant's actual resting HR.
+  // Fixed immediately — no mid-session shifts.
+  const [baselineHR, setBaselineHR] = useState(70);
+  const baselineHRRef = useRef(70);
+  const baselineReadingCount = useRef(0);
+  const baselineSum = useRef(0);
+  const baselineLocked = useRef(false);
 
   const [idlePunIndex, setIdlePunIndex] = useState(0);
   const [idleScreen, setIdleScreen] = useState<'challenger' | 'prize'>('challenger');
@@ -188,8 +192,6 @@ export default function App() {
   }, []);
 
   const handleReading = useCallback((reading: HRReading) => {
-    setCurrentBPM(reading.bpm);
-
     // Rolling 4-reading average (~1s at 250ms interval) for stable display
     bpmHistoryRef.current.push(reading.bpm);
     if (bpmHistoryRef.current.length > 4) bpmHistoryRef.current.shift();
@@ -198,23 +200,24 @@ export default function App() {
     );
     setSmoothedBPM(avg);
 
-    // Record visual BPM (amplified + offset) so MIN/AVG/MAX match the display
-    const recordedBPM = computeVisualBPM(avg, baselineHRRef.current, 1.0, bpmOffsetRef.current);
+    // Record display BPM (raw + offset) so MIN/AVG/MAX match what was shown on screen
+    const recordedBPM = Math.round(Math.max(40, Math.min(220, avg + bpmOffsetRef.current)));
     sessionManager.current.addReading({ ...reading, bpm: recordedBPM });
 
-    // Baseline detection: collect first 10 seconds of readings (uses ref to avoid stale closure)
-    if (!baselineDetected && startTimeRef.current) {
-      const elapsed = (Date.now() - startTimeRef.current) / 1000;
-      if (elapsed <= 10) {
-        baselineReadings.current.push(reading.bpm);
-      } else if (baselineReadings.current.length > 0) {
-        const sum = baselineReadings.current.reduce((a, b) => a + b, 0);
-        const avg = Math.round(sum / baselineReadings.current.length);
-        setBaselineHR(avg);
-        setBaselineDetected(true);
+    // Baseline lock: average the first 3 readings after session start (~750ms).
+    // Personalises zone thresholds to this participant's resting HR.
+    // Applied immediately — no mid-session shift.
+    if (!baselineLocked.current && startTimeRef.current) {
+      baselineSum.current += reading.bpm;
+      baselineReadingCount.current += 1;
+      if (baselineReadingCount.current >= 3) {
+        const detected = Math.round(baselineSum.current / baselineReadingCount.current);
+        setBaselineHR(detected);
+        baselineHRRef.current = detected;
+        baselineLocked.current = true;
       }
     }
-  }, [baselineDetected]);
+  }, []);
 
   const handleConnect = async () => {
     if (dataSource === 'ble') {
@@ -251,7 +254,6 @@ export default function App() {
       dummyService.current.stop();
     }
     setConnectionState('disconnected');
-    setCurrentBPM(0);
     setBatteryLevel(null);
   };
 
@@ -287,15 +289,17 @@ export default function App() {
   const handleResetSession = () => {
     sessionManager.current.reset();
     setSessionState('idle');
-    setCurrentBPM(0);
     setSmoothedBPM(0);
     bpmHistoryRef.current = [];
     setSessionStats(null);
     setStartTime(null);
     startTimeRef.current = null;
     setBpmOffset(0);
-    setBaselineDetected(false);
-    baselineReadings.current = [];
+    setBaselineHR(70);
+    baselineHRRef.current = 70;
+    baselineLocked.current = false;
+    baselineReadingCount.current = 0;
+    baselineSum.current = 0;
   };
 
   const handleToggleDataSource = () => {
@@ -441,7 +445,7 @@ export default function App() {
     const zoneDuration: Record<number, number> = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
     for (let i = 1; i < readings.length; i++) {
       const interval = readings[i].timestamp - readings[i - 1].timestamp;
-      const z = getHRZone(readings[i - 1].bpm);
+      const z = getHRZoneWithSensitivity(readings[i - 1].bpm, 1.0);
       zoneDuration[z] += interval;
     }
     const dominant = (Object.entries(zoneDuration).sort((a, b) => b[1] - a[1])[0][0]) as unknown as HRZone;
@@ -456,12 +460,13 @@ export default function App() {
     5: "Full overload. The projector bulb blew and you didn't flinch.",
   };
 
-  // Compute visual BPM (amplified + operator offset) for all stress visuals
-  // Uses smoothed BPM so display/zone/waveform don't jitter with per-reading noise
-  const visualBPM = computeVisualBPM(smoothedBPM, baselineHR, sensitivityMultiplier, bpmOffset);
-  visualBPMRef.current = visualBPM;
-  const zone: HRZone = getHRZone(visualBPM);
-  const stressColor = getZoneColor(zone);
+  // displayBPM: raw sensor value + manual W/S offset — the number shown on screen
+  // Also fed into zone calculation so W/S offset shifts the zone as well as the display
+  const displayBPM = Math.round(Math.max(40, Math.min(220, smoothedBPM + bpmOffset)));
+  visualBPMRef.current = displayBPM;
+
+  // Zone: sensitivity + participant's locked baseline (set from first 3 readings, ~750ms)
+  const zone: HRZone = getHRZoneWithSensitivity(displayBPM, sensitivityMultiplier, baselineHR);
   const isActive = sessionState === 'active';
 
   // Fast zone debounce (500ms) for the gauge — reacts quickly to real changes
@@ -477,6 +482,10 @@ export default function App() {
       if (stableZoneTimerRef.current) clearTimeout(stableZoneTimerRef.current);
     };
   }, [zone]);
+
+  // Single color source for all active visuals — keyed to stableZone so
+  // waveform, ring, gauge, pun text, and background all change together
+  const stressColor = getZoneColor(stableZone);
 
   // Slow zone debounce (10s) for puns — prevents flip-flopping at zone boundaries
   const punZoneTimerRef = useRef<number | null>(null);
@@ -569,15 +578,15 @@ export default function App() {
           <div key="active-mobile" style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '0.5rem', minHeight: 0, animation: 'fadeIn 0.5s ease' }}>
             {/* BPM ring — centred */}
             <div style={{ display: 'flex', justifyContent: 'center', flexShrink: 0 }}>
-              <BPMDisplay bpm={currentBPM} visualBPM={visualBPM} isActive={isActive} />
+              <BPMDisplay bpm={displayBPM} zone={stableZone} isActive={isActive} />
             </div>
             {/* Waveform — takes remaining height */}
             <div style={{ flex: 1, borderRadius: '12px', overflow: 'hidden', minHeight: '100px', background: '#000000', boxShadow: '0 2px 16px rgba(0,0,0,0.18)' }}>
-              <Waveform bpm={visualBPM} isActive={isActive} />
+              <Waveform bpm={displayBPM} color={stressColor} isActive={isActive} />
             </div>
             {/* HR Zone + pun + timer */}
             <div style={{ flexShrink: 0, display: 'flex', flexDirection: 'column', gap: '0.2rem' }}>
-              <StressGauge bpm={visualBPM} isActive={isActive} stableZone={stableZone} />
+              <StressGauge bpm={displayBPM} isActive={isActive} stableZone={stableZone} />
               <div style={{ fontSize: '0.78rem', fontFamily: 'Montserrat, sans-serif', color: stressColor, fontStyle: 'italic', opacity: punVisible ? 1 : 0, transition: 'opacity 0.35s ease' }}>
                 {displayedPun}
               </div>
@@ -603,13 +612,13 @@ export default function App() {
             }}
           >
             <div style={{ gridColumn: 1, gridRow: 1, borderRadius: '12px', overflow: 'hidden', height: '100%', background: '#000000', boxShadow: '0 2px 16px rgba(0,0,0,0.18)' }}>
-              <Waveform bpm={visualBPM} isActive={isActive} />
+              <Waveform bpm={displayBPM} color={stressColor} isActive={isActive} />
             </div>
             <div style={{ gridColumn: 2, gridRow: 1 }}>
-              <BPMDisplay bpm={currentBPM} visualBPM={visualBPM} isActive={isActive} />
+              <BPMDisplay bpm={displayBPM} zone={stableZone} isActive={isActive} />
             </div>
             <div style={{ gridColumn: 1, gridRow: 2, display: 'flex', flexDirection: 'column', gap: '0.375rem' }}>
-              <StressGauge bpm={visualBPM} isActive={isActive} stableZone={stableZone} />
+              <StressGauge bpm={displayBPM} isActive={isActive} stableZone={stableZone} />
               <div
                 style={{
                   fontSize: 'clamp(0.7rem, 1.1vw, 0.85rem)',
@@ -861,6 +870,8 @@ export default function App() {
           onStatsRefresh={refreshStats}
           bleError={bleError}
           onClearBleError={() => setBleError(null)}
+          sensitivityMultiplier={sensitivityMultiplier}
+          onSensitivityChange={setSensitivityMultiplier}
         />
       )}
     </div>

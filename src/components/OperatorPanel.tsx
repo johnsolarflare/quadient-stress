@@ -19,6 +19,8 @@ interface OperatorPanelProps {
   onStatsRefresh: () => void;
   bleError?: string | null;
   onClearBleError?: () => void;
+  sensitivityMultiplier: number;
+  onSensitivityChange: (value: number) => void;
 }
 
 export function OperatorPanel({
@@ -38,6 +40,8 @@ export function OperatorPanel({
   onStatsRefresh,
   bleError,
   onClearBleError,
+  sensitivityMultiplier,
+  onSensitivityChange,
 }: OperatorPanelProps) {
   const [exportStatus, setExportStatus] = useState('');
 
@@ -300,6 +304,67 @@ export function OperatorPanel({
                 Ready for Next Participant
               </button>
             )}
+          </div>
+        </div>
+
+        {/* Zone Sensitivity */}
+        <div>
+          <label
+            style={{
+              fontSize: '0.6875rem',
+              fontFamily: 'Quicksand, sans-serif',
+              fontWeight: 600,
+              color: '#5C6371',
+              display: 'block',
+              marginBottom: '0.375rem',
+            }}
+          >
+            Zone Sensitivity
+          </label>
+          <div
+            style={{
+              background: '#F9FAFB',
+              borderRadius: '8px',
+              padding: '0.75rem',
+            }}
+          >
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'baseline',
+                marginBottom: '0.5rem',
+              }}
+            >
+              <span style={{ fontSize: '0.75rem', fontFamily: 'Montserrat, sans-serif', color: '#5C6371' }}>
+                {sensitivityMultiplier < 0.8 ? 'Low' : sensitivityMultiplier > 1.5 ? 'High' : 'Normal'}
+              </span>
+              <span style={{ fontSize: '0.875rem', fontFamily: 'Quicksand, sans-serif', fontWeight: 700, color: '#374151' }}>
+                {sensitivityMultiplier.toFixed(1)}x
+              </span>
+            </div>
+            <input
+              type="range"
+              min={0.5}
+              max={3.0}
+              step={0.1}
+              value={sensitivityMultiplier}
+              onChange={e => onSensitivityChange(parseFloat(e.target.value))}
+              style={{ width: '100%', accentColor: '#FF4200', cursor: 'pointer' }}
+            />
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                marginTop: '0.25rem',
+                fontSize: '0.625rem',
+                fontFamily: 'Montserrat, sans-serif',
+                color: '#9CA3AF',
+              }}
+            >
+              <span>0.5×</span>
+              <span>3.0×</span>
+            </div>
           </div>
         </div>
 
