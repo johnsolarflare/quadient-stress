@@ -27,9 +27,15 @@ dist-ssr
 .env.*
 !.env.example
 
-# Output and deliverables — stored locally / in cloud, not in git
+# Output
 output/
-deliverables/
+
+# Playwright session snapshots
+.playwright-mcp/
+
+# Deliverable working screenshots (keep docs)
+deliverables/screenshots/
 
 # Claude Code session files
 .claude/
+.env*.local

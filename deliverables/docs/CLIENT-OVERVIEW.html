@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Quadient Stress Dashboard — Client Overview</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    @page {
+      size: A4;
+      margin: 14mm 16mm;
+    }
+
+    body {
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      background: #F9FAFB;
+      color: #374151;
+      line-height: 1.6;
+      font-size: 13px;
+    }
+
+    /* ── HEADER ── */
+    .doc-header {
+      background: #ffffff;
+      border-bottom: 1px solid #E5E7EB;
+      padding: 1.75rem 2.5rem 1.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 2rem;
+    }
+    .doc-header img { height: 28px; width: auto; }
+    .doc-header-text h1 {
+      font-size: 1.375rem;
+      font-weight: 700;
+      color: #111827;
+      margin-bottom: 0.15rem;
+    }
+    .doc-header-text .live-link {
+      font-size: 0.75rem;
+      color: #9CA3AF;
+    }
+    .doc-header-text .live-link a {
+      color: #FF4200;
+      text-decoration: none;
+      font-weight: 600;
+    }
+
+    /* ── LAYOUT ── */
+    .doc-body {
+      max-width: 100%;
+      padding: 1.75rem 2.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1.75rem;
+    }
+
+    /* ── SECTION ── */
+    section { display: flex; flex-direction: column; gap: 0.75rem; }
+
+    .section-label {
+      font-size: 0.625rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: #FF4200;
+    }
+
+    h2 {
+      font-size: 1.0625rem;
+      font-weight: 700;
+      color: #111827;
+      line-height: 1.3;
+    }
+
+    p {
+      font-size: 0.8125rem;
+      color: #4B5563;
+    }
+
+    ul {
+      padding-left: 1.1rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+    }
+
+    li {
+      font-size: 0.8125rem;
+      color: #4B5563;
+    }
+
+    li strong { color: #111827; }
+
+    /* ── ZONE TABLE ── */
+    .zone-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.8125rem;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+    }
+    .zone-table thead tr { background: #F3F4F6; }
+    .zone-table thead th {
+      padding: 0.5rem 0.875rem;
+      text-align: left;
+      font-size: 0.625rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #6B7280;
+    }
+    .zone-table tbody tr {
+      background: #ffffff;
+      border-top: 1px solid #F3F4F6;
+    }
+    .zone-table tbody td { padding: 0.5rem 0.875rem; color: #374151; }
+    .zone-dot {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      font-weight: 700;
+    }
+    .zone-dot::before {
+      content: '';
+      display: inline-block;
+      width: 8px; height: 8px;
+      border-radius: 50%;
+    }
+    .z1::before { background: #05B9F0; }
+    .z2::before { background: #7536F0; }
+    .z3::before { background: #FF4200; }
+    .z4::before { background: #CC3400; }
+    .z5::before { background: #8B1A00; }
+
+    /* ── SCREENSHOTS ── */
+    .screen-grid-2x2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+    }
+
+    .screen-row-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+    }
+
+    .screen-card {
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+    }
+
+    .screen-card img {
+      width: 100%;
+      border-radius: 6px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.10);
+      display: block;
+      border: 1px solid #E5E7EB;
+    }
+
+    .screen-label {
+      font-size: 0.6875rem;
+      font-weight: 700;
+      color: #111827;
+    }
+
+    .screen-desc {
+      font-size: 0.75rem;
+      color: #6B7280;
+      line-height: 1.45;
+    }
+
+    /* ── DIVIDER ── */
+    hr {
+      border: none;
+      border-top: 1px solid #E5E7EB;
+    }
+
+    /* ── FOOTER ── */
+    .doc-footer {
+      border-top: 1px solid #E5E7EB;
+      background: #ffffff;
+      padding: 0.875rem 2.5rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .doc-footer span {
+      font-size: 0.6875rem;
+      color: #9CA3AF;
+    }
+
+    /* ── PRINT ── */
+    @media print {
+      body { background: #ffffff; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+      .doc-header { padding: 0.75rem 0 0.75rem; border-bottom: 1px solid #E5E7EB; }
+      .doc-body { padding: 1rem 0; gap: 1.25rem; }
+      .doc-footer { padding: 0.75rem 0; }
+      .zone-table { box-shadow: none; border: 1px solid #E5E7EB; }
+      .screen-card img { box-shadow: none; }
+      section { break-inside: avoid; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- HEADER -->
+  <div class="doc-header">
+    <div class="doc-header-text">
+      <h1>Quadient Stress Dashboard</h1>
+      <p class="live-link">Client Overview &nbsp;·&nbsp; Live demo: <a href="https://quadient-stress-dashboard.vercel.app" target="_blank">quadient-stress-dashboard.vercel.app</a></p>
+    </div>
+    <img src="public/quadient-logo.png" alt="Quadient" />
+  </div>
+
+  <div class="doc-body">
+
+    <!-- OVERVIEW + MEASURES: 2-col side by side -->
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
+
+      <section>
+        <span class="section-label">Overview</span>
+        <h2>A real-time biometric activation built for live environments</h2>
+        <p>The Quadient Stress Dashboard is an interactive experience designed for events, exhibitions, and workplace activations. Participants wear a Polar heart rate sensor while their physiological response is visualised instantly on a shared screen — translating biometric data into a clear, engaging narrative of "stress" using colour, motion, and light-touch office humour.</p>
+        <p style="margin-top: 0.4rem;">The system is built for efficient throughput, allowing a single operator to manage multiple participants consecutively with minimal intervention.</p>
+      </section>
+
+      <section>
+        <span class="section-label">What the Experience Measures</span>
+        <h2>Heart rate mapped to five cognitive stress zones</h2>
+        <p style="margin-bottom: 0.6rem;">Each session begins with a short baseline calibration (~10 seconds), adapting dynamically to the individual's resting level so results are relative and comparable across participants.</p>
+        <table class="zone-table">
+          <thead>
+            <tr>
+              <th>Zone</th><th>Label</th><th>BPM Range</th><th>Colour</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>Z1</td><td><span class="zone-dot z1">Composed</span></td><td>&lt; 72 BPM</td><td>Quadient Blue</td></tr>
+            <tr><td>Z2</td><td><span class="zone-dot z2">Aware</span></td><td>72–82 BPM</td><td>Violet</td></tr>
+            <tr><td>Z3</td><td><span class="zone-dot z3">Tense</span></td><td>83–94 BPM</td><td>Orange</td></tr>
+            <tr><td>Z4</td><td><span class="zone-dot z4">Stressed</span></td><td>95–111 BPM</td><td>Red-Orange</td></tr>
+            <tr><td>Z5</td><td><span class="zone-dot z5">Overloaded</span></td><td>112+ BPM</td><td>Deep Red</td></tr>
+          </tbody>
+        </table>
+      </section>
+
+    </div>
+
+    <hr />
+
+    <!-- EXPERIENCE FLOW -->
+    <section>
+      <span class="section-label">Experience Flow</span>
+      <h2>Three states — Idle, Active, Complete</h2>
+      <div class="screen-grid-2x2">
+        <div class="screen-card">
+          <img src="ux-screenshots/01-desktop-idle.png" alt="Idle state" />
+          <span class="screen-label">Idle</span>
+          <span class="screen-desc">"Next Challenger" holding state with rotating workplace prompts. The event leaderboard builds in the background throughout the day.</span>
+        </div>
+        <div class="screen-card">
+          <img src="ux-screenshots/02-desktop-active.png" alt="Active — Composed" />
+          <span class="screen-label">Active Session — Composed (Z1)</span>
+          <span class="screen-desc">Live ECG waveform, BPM ring, zone gauge, session timer, and Min/Avg/Max stats. Blue — participant is calm.</span>
+        </div>
+        <div class="screen-card">
+          <img src="ux-screenshots/03-desktop-active-elevated.png" alt="Active — Overloaded" />
+          <span class="screen-label">Active Session — Overloaded (Z5)</span>
+          <span class="screen-desc">All visuals shift to deep red. The waveform intensifies, gauge fills, and the ambient background glow matches the zone.</span>
+        </div>
+        <div class="screen-card">
+          <img src="ux-screenshots/04-desktop-completed.png" alt="Session complete" />
+          <span class="screen-label">Session Complete</span>
+          <span class="screen-desc">Peak BPM as the headline result, with Avg, Min, and Duration below. The event leaderboard updates at the bottom.</span>
+        </div>
+      </div>
+    </section>
+
+    <hr />
+
+    <!-- OPERATOR CONTROL -->
+    <section>
+      <span class="section-label">Operator Control</span>
+      <h2>Full control without disrupting the main display</h2>
+      <div class="screen-row-2" style="margin-top: 0.25rem;">
+        <div class="screen-card">
+          <img src="ux-screenshots/05-desktop-operator-panel.png" alt="Operator panel" />
+          <span class="screen-label">Operator Panel</span>
+          <span class="screen-desc">Slides in from the right edge. Switch data source, manage the Polar sensor, start/end/reset sessions, export a CSV, and clear data between activations.</span>
+        </div>
+        <div class="screen-card">
+          <img src="ux-screenshots/10-remote-idle.png" alt="Remote control" />
+          <span class="screen-label">Remote Control — Operator's Phone</span>
+          <span class="screen-desc">A secure PIN link opens a mobile control view. Start, end, and reset sessions from anywhere in the room, synced live to the main display via Firebase.</span>
+        </div>
+      </div>
+    </section>
+
+    <hr />
+
+    <!-- TECHNICAL + COPY: 2-col side by side -->
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; align-items: start;">
+
+      <section>
+        <span class="section-label">Technical Notes</span>
+        <h2>A few things worth knowing</h2>
+        <ul>
+          <li><strong>No sensor required to demo</strong> — a built-in simulation mode runs the full experience without any hardware</li>
+          <li><strong>All data stays local</strong> — nothing is stored externally; session stats persist in the browser for the duration of the event</li>
+          <li><strong>Brand-ready</strong> — colours, typography, and UI reflect Quadient's visual identity throughout</li>
+        </ul>
+      </section>
+
+      <section>
+        <span class="section-label">Copy & Messaging</span>
+        <h2>All on-screen copy is customisable — or can be removed entirely</h2>
+        <p>The dashboard includes a library of contextual puns written for an office environment, zone-aware and rotating throughout each session. All copy can be swapped for brand-specific messaging, neutralised, or switched off.</p>
+      </section>
+
+    </div>
+
+    <!-- PUNS FULL WIDTH -->
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+
+      <div>
+        <div style="font-size: 0.625rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: #9CA3AF; margin-bottom: 0.6rem;">Idle Screen — rotating every 5 seconds</div>
+        <ul style="list-style: none; padding: 0; display: flex; flex-direction: column; gap: 0.25rem;">
+          <li style="font-size: 0.8rem; color: #4B5563; font-style: italic;">"Last one peaked at 157 BPM when the photocopier jammed mid-presentation."</li>
+          <li style="font-size: 0.8rem; color: #4B5563; font-style: italic;">"The fax from accounts still hasn't arrived. It's been three days."</li>
+          <li style="font-size: 0.8rem; color: #4B5563; font-style: italic;">"Think you're calmer than your manager? The overhead projector says otherwise."</li>
+          <li style="font-size: 0.8rem; color: #4B5563; font-style: italic;">"Your in-tray has 47 items. The one at the bottom has been there since before anyone can remember."</li>
+          <li style="font-size: 0.8rem; color: #4B5563; font-style: italic;">"It's just the annual appraisal. The form is four pages. In triplicate."</li>
+          <li style="font-size: 0.8rem; color: #4B5563; font-style: italic;">"Someone booked the only meeting room. For the whole day. Just for themselves."</li>
+          <li style="font-size: 0.8rem; color: #4B5563; font-style: italic;">"Your 9am became a 3pm. The memo never made it round."</li>
+        </ul>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+        <div>
+          <div style="font-size: 0.625rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: #05B9F0; margin-bottom: 0.3rem;">Z1 — Composed</div>
+          <ul style="list-style: none; padding: 0; display: flex; flex-direction: column; gap: 0.15rem;">
+            <li style="font-size: 0.775rem; color: #4B5563; font-style: italic;">"Suspiciously relaxed. Have you checked your in-tray lately?" &nbsp;·&nbsp; "Ice in those veins. Your manager is mildly concerned." &nbsp;·&nbsp; "Either very zen or it's not your turn to fix the photocopier today." &nbsp;·&nbsp; "This is fine. The pigeon hole isn't overflowing. Yet."</li>
+          </ul>
+        </div>
+        <div>
+          <div style="font-size: 0.625rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: #7536F0; margin-bottom: 0.3rem;">Z2 — Aware</div>
+          <ul style="list-style: none; padding: 0;">
+            <li style="font-size: 0.775rem; color: #4B5563; font-style: italic;">"Getting warmer. There's a note on your desk marked urgent." &nbsp;·&nbsp; "A meeting just appeared in the paper diary." &nbsp;·&nbsp; "Someone's left a Post-it on your monitor. It looks serious." &nbsp;·&nbsp; "The pressure is registering. Just like the fax tone."</li>
+          </ul>
+        </div>
+        <div>
+          <div style="font-size: 0.625rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: #FF4200; margin-bottom: 0.3rem;">Z3 — Tense</div>
+          <ul style="list-style: none; padding: 0;">
+            <li style="font-size: 0.775rem; color: #4B5563; font-style: italic;">"Three memos. All marked urgent. All landed at once." &nbsp;·&nbsp; "Your to-do list just grew by four handwritten items." &nbsp;·&nbsp; "That deadline is closer than it looks. The wall calendar doesn't lie." &nbsp;·&nbsp; "Is that the fax machine going off again?"</li>
+          </ul>
+        </div>
+        <div>
+          <div style="font-size: 0.625rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: #CC3400; margin-bottom: 0.3rem;">Z4 — Stressed</div>
+          <ul style="list-style: none; padding: 0;">
+            <li style="font-size: 0.775rem; color: #4B5563; font-style: italic;">"The MD wants 'just a quick word' in his office." &nbsp;·&nbsp; "Your 3pm became a 2pm. The receptionist just rang." &nbsp;·&nbsp; "Multiple stakeholders. One overhead projector. No spare bulb." &nbsp;·&nbsp; "Live presentation. Wrong transparency on the projector."</li>
+          </ul>
+        </div>
+        <div>
+          <div style="font-size: 0.625rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: #8B1A00; margin-bottom: 0.3rem;">Z5 — Overloaded</div>
+          <ul style="list-style: none; padding: 0;">
+            <li style="font-size: 0.775rem; color: #4B5563; font-style: italic;">"Invoice missing. Client calling. Printer jammed. Pigeon hole overflowing." &nbsp;·&nbsp; "All-hands in five. You're presenting. The projector bulb just blew." &nbsp;·&nbsp; "Everyone is waiting. The fax still hasn't arrived. Everyone." &nbsp;·&nbsp; "Deep breaths. The right file is in the cabinet somewhere. Probably."</li>
+          </ul>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+
+  <!-- FOOTER -->
+  <div class="doc-footer">
+    <span>Quadient Stress Dashboard — Client Overview</span>
+    <span>Make room for the remarkable.</span>
+  </div>
+
+</body>
+</html>

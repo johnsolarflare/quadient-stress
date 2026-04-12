@@ -68,17 +68,12 @@ git commit -m "message"
 git push origin staging-2   # or main
 
 # 3. Vercel auto-deploys from GitHub with correct env vars (takes ~15s)
-# 4. Verify the alias is pointing to the new deployment:
-vercel alias list --scope john-2408s-projects | grep staging-2
+# 4. ALWAYS re-alias staging-2 — preview URLs do not auto-update:
+vercel list quadient-stress-dashboard --scope john-2408s-projects | head -6
+vercel alias set <new-preview-url> quadient-stress-staging-2.vercel.app --scope john-2408s-projects
 ```
 
-**If staging-2 alias needs updating manually:**
-```bash
-# Get the latest preview deployment URL from:
-vercel list quadient-stress-dashboard --scope john-2408s-projects | head -8
-# Then alias it:
-vercel alias set <new-deployment-url> quadient-stress-staging-2.vercel.app --scope john-2408s-projects
-```
+> **Note:** Production (`main`) aliases automatically. `staging-2` does NOT — the alias must be updated manually after every push or the URL stays on the old build.
 
 **Required env vars per environment (set in Vercel dashboard):**
 
